@@ -26,89 +26,6 @@
     <dependencySets>
         <!--
         #######################################################################
-        #  hibernate-ogm-core
-        #######################################################################
-         -->
-        <dependencySet>
-            <useProjectArtifact>false</useProjectArtifact>
-            <outputDirectory>dist/lib/core</outputDirectory>
-            <useTransitiveFiltering>true</useTransitiveFiltering>
-            <unpack>false</unpack>
-            <includes>
-                <include>org.hibernate.ogm:hibernate-ogm-core</include>
-            </includes>
-        </dependencySet>
-
-        <!-- Optional libraries -->
-        <dependencySet>
-            <useProjectArtifact>false</useProjectArtifact>
-            <outputDirectory>dist/lib/optional</outputDirectory>
-            <useTransitiveFiltering>true</useTransitiveFiltering>
-            <unpack>false</unpack>
-            <includes>
-                 <include>org.hibernate:hibernate-search-orm</include>
-                 <include>org.hibernate.hql:hibernate-hql-lucene</include>
-            </includes>
-        </dependencySet>
-
-        <dependencySet>
-            <useProjectArtifact>false</useProjectArtifact>
-            <outputDirectory>dist/lib/optional/parboiled-java</outputDirectory>
-            <useTransitiveFiltering>true</useTransitiveFiltering>
-            <unpack>false</unpack>
-            <includes>
-                 <include>org.parboiled:parboiled-java</include>
-            </includes>
-        </dependencySet>
-
-        <!-- Provided libraries -->
-        <dependencySet>
-            <useProjectArtifact>false</useProjectArtifact>
-            <outputDirectory>dist/lib/provided</outputDirectory>
-            <useTransitiveFiltering>false</useTransitiveFiltering>
-            <unpack>false</unpack>
-            <includes>
-                 <include>org.jboss.logging:jboss-logging-annotations</include>
-                 <include>org.jboss.spec.javax.transaction:jboss-transaction-api_1.2_spec</include>
-            </includes>
-        </dependencySet>
-
-        <!--
-        #######################################################################
-        #  hibernate-ogm-infinispan
-        #######################################################################
-         -->
-        <dependencySet>
-            <useProjectArtifact>false</useProjectArtifact>
-            <outputDirectory>dist/lib/infinispan</outputDirectory>
-            <useTransitiveFiltering>true</useTransitiveFiltering>
-            <unpack>false</unpack>
-            <includes>
-                <include>org.hibernate.ogm:hibernate-ogm-infinispan:jar</include>
-
-                <!-- Optional dependencies for infinispan -->
-                <include>org.infinispan:infinispan-lucene-directory</include>
-                <include>org.infinispan:infinispan-directory-provider</include>
-            </includes>
-        </dependencySet>
-
-        <!--
-        #######################################################################
-        #  hibernate-ogm-infinispan-remote
-        #######################################################################
-         -->
-        <dependencySet>
-            <useProjectArtifact>false</useProjectArtifact>
-            <outputDirectory>dist/lib/infinispan-remote</outputDirectory>
-            <useTransitiveFiltering>true</useTransitiveFiltering>
-            <unpack>false</unpack>
-            <includes>
-                <include>org.hibernate.ogm:hibernate-ogm-infinispan-remote</include>
-            </includes>
-        </dependencySet>
-
-        <!--
-        #######################################################################
         #  hibernate-ogm-ehcache
         #######################################################################
          -->
@@ -119,36 +36,6 @@
             <unpack>false</unpack>
             <includes>
                 <include>org.hibernate.ogm:hibernate-ogm-ehcache</include>
-            </includes>
-        </dependencySet>
-
-        <!--
-        #######################################################################
-        #  hibernate-ogm-mongodb
-        #######################################################################
-         -->
-        <dependencySet>
-            <useProjectArtifact>false</useProjectArtifact>
-            <outputDirectory>dist/lib/mongodb</outputDirectory>
-            <useTransitiveFiltering>true</useTransitiveFiltering>
-            <unpack>false</unpack>
-            <includes>
-                <include>org.hibernate.ogm:hibernate-ogm-mongodb</include>
-            </includes>
-        </dependencySet>
-
-        <!--
-        #######################################################################
-        #  hibernate-ogm-neo4j
-        #######################################################################
-         -->
-        <dependencySet>
-            <useProjectArtifact>false</useProjectArtifact>
-            <outputDirectory>dist/lib/neo4j</outputDirectory>
-            <useTransitiveFiltering>true</useTransitiveFiltering>
-            <unpack>false</unpack>
-            <includes>
-                <include>org.hibernate.ogm:hibernate-ogm-neo4j</include>
             </includes>
         </dependencySet>
 
@@ -208,10 +95,6 @@
             <source>../license.txt</source>
             <outputDirectory>/</outputDirectory>
         </file>
-        <file>
-            <source>../changelog.txt</source>
-            <outputDirectory>/</outputDirectory>
-        </file>
     </files>
 
     <fileSets>
@@ -252,11 +135,6 @@
         <fileSet>
             <directory>../documentation/javadoc/target/apidocs</directory>
             <outputDirectory>docs/api</outputDirectory>
-        </fileSet>
-        <!--  Lucene Core 3.6.2 for Neo4j -->
-        <fileSet>
-            <directory>target/lib/neo4j</directory>
-            <outputDirectory>dist/lib/neo4j</outputDirectory>
         </fileSet>
 
         <!--  Google Guava 17.0 for lettuce/Redis -->
