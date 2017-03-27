@@ -1,6 +1,0 @@
-package HibernateOGMGenerated;
-
-message SnowFlake {
-	required string id = 1;
-	optional string description = 1;
-}
