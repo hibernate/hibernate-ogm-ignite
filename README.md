@@ -1,10 +1,11 @@
-# Hibernate OGM
+# Hibernate OGM Contrb
 
 *Version: 5.1.0.Final - 01-03-2017*
 
 ## Description
 
-Hibernate OGM stores data in a NoSQL data grid using the Hibernate ORM engine.
+[Hibernate OGM](http://hibernate.org/ogm/) stores data in a NoSQL data
+grid using the Hibernate ORM engine.
 
 The benefits are fairly obvious:
  - write your model once using well known JPA annotations and select the right NoSQL data grid for your project
@@ -13,9 +14,11 @@ The benefits are fairly obvious:
 
 Checkout <http://hibernate.org/ogm/> for more information.
 
+This projects collection dialects for different datastores coming from contributors.
+
 ## Useful pointers
 
-Latest Documentation:
+Latest Hibernate OGM Documentation:
 
  * Reference guide: <https://docs.jboss.org/hibernate/stable/ogm/reference/en-US/html_single/>
  * Additional content: <http://community.jboss.org/en/hibernate/ogm>
@@ -32,14 +35,11 @@ Support:
 
 ## Build instructions
 
-The code is available on GitHub at <https://github.com/hibernate/hibernate-ogm>.
+The code is available on GitHub at <https://github.com/hibernate/hibernate-ogm-contrib>.
 
 To run the full project build including tests for all backends, documentation etc. execute:
 
     mvn clean install -s settings-example.xml
-
-Note that for running the test suite against separately installed MongoDB and CouchDB servers their host name must be specified via an environment variable.
-See the sections below for the details.
 
 To speed things up, there are several options for skipping parts of the build.
 To run the minimum project build without integration tests, documentation and distribution execute:
@@ -53,7 +53,9 @@ The following sections describe these options in more detail.
 Import the project as any standard Maven project.
 This might trigger a dialog to automatically find and install additional m2e plugins: allow that.
 
-Make sure that annotation processing is enabled in your project settings (see "Properties" - "Maven" - "Annotation Processing", the setting should be "Automatically configure JDT APT").
+Make sure that annotation processing is enabled in your project settings
+(see "Properties" - "Maven" - "Annotation Processing",
+the setting should be "Automatically configure JDT APT").
 
 ### Integration tests
 
@@ -63,7 +65,8 @@ You can skip integration tests by specifying the `skipITs` property:
 
 ### Documentation
 
-The documentation is built by default as part of the project build. You can skip it by specifying the `skipDocs` property:
+The documentation is built by default as part of the project build.
+You can skip it by specifying the `skipDocs` property:
 
     mvn clean install -DskipDocs -s settings-example.xml
 
@@ -73,7 +76,8 @@ By default, the following command only builds the HTML version of the documentat
 
     mvn clean install -f documentation/manual/pom.xml -s settings-example.xml
 
-If you also wish to generate the PDF version of the documentation, you need to use the `documentation-pdf` profile:
+If you also wish to generate the PDF version of the documentation,
+you need to use the `documentation-pdf` profile:
 
     mvn clean install -f documentation/manual/pom.xml -s settings-example.xml -Pdocumentation-pdf
 
@@ -163,25 +167,6 @@ Commands to spin up/shut down the Redis instances:
 
     make start
     make stop
-
-### Neo4j
-
-For running the tests in the _neo4j_ and _integrationtest/neo4j_ modules, by default the
-embedded Neo4j configuration is used.
-
-If you want to run the tests on a remote server, you need to specify the profile `neo4j-remote`
-
-    mvn clean install -s settings-example.xml -Pneo4j-remote
-
-This assumes Neo4j to be installed on `localhost`, using the default port and no authentication.
-If you work with different settings, configure the required properties in hibernate.properties
-and/or the environment variables `NEO4J_HOSTNAME`, `NEO4J_PORT`, `NEO4J_USERNAME` and `NEO4J_PASSWORD`
-prior to running the tests:
-
-    export NEO4J_HOSTNAME=neo4j-machine
-    export NEO4J_PORT=1234
-    export NEO4J_USERNAME=someUsername
-    export NEO4J_PASSWORD=someP@ssw0rd
 
 ## Notes
 
