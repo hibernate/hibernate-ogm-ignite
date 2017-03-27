@@ -32,7 +32,18 @@ install:
   - travis_wait ./mvnw -B -q -s settings-example.xml -Ptest -DskipTests=true -Dmaven.javadoc.skip=true -DskipDistro=true install
   # we run checkstyle first to fail fast if there is a styling error
   - ./mvnw -s settings-example.xml -DskipDistro=true checkstyle:check
+matrix:
+  - env: DATASTORE=couchdb
+  - env: DATASTORE=ehcache
+  - env: DATASTORE=cassandra
+  - env: DATASTORE=redis
 script:
   - ./mvnw -s settings-example.xml clean install
+  - if [ "$" == "couchdb" ]; then  ./mvnw -s settings-example.xml clean install -pl couchdb; fi
+  - if [ "$" == "ehcache" ]; then  ./mvnw -s settings-example.xml clean install -pl ehcache; fi
+  - if [ "$" == "cassandra" ]; then  ./mvnw -s settings-example.xml clean install -pl cassandra; fi
+  - if [ "$" == "redis" ]; then  ./mvnw -s settings-example.xml clean install -pl redis; fi
+  - ./mvnw -s settings-example.xml clean install -DskipTests && ./mvnw -s settings-example.xml clean install -pl modules,integrationtest
+  - ./mvnw -s settings-example.xml clean install -DskipTests && ./mvnw -s settings-example.xml clean install -pl documentation,distribution
 after_script:
   - rm -rf $HOME/.m2/repository/org/hibernate/ogm/
