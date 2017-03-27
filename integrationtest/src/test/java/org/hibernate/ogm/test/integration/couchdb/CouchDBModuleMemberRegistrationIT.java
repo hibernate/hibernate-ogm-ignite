@@ -6,6 +6,8 @@
  */
 package org.hibernate.ogm.test.integration.couchdb;
 
+import org.hibernate.ogm.datastore.couchdb.impl.CouchDBDatastoreProvider;
+import org.hibernate.ogm.jpa.HibernateOgmPersistence;
 import org.hibernate.ogm.test.integration.testcase.ModuleMemberRegistrationScenario;
 import org.hibernate.ogm.test.integration.testcase.util.ModuleMemberRegistrationDeployment;
 import org.jboss.arquillian.container.test.api.Deployment;
@@ -68,9 +70,9 @@ public class CouchDBModuleMemberRegistrationIT extends ModuleMemberRegistrationS
 					.version( "2.0" )
 					.createPersistenceUnit()
 						.name( "primary" )
-						.provider( "org.hibernate.ogm.jpa.HibernateOgmPersistence" )
+						.provider( HibernateOgmPersistence.class.getName() )
 						.getOrCreateProperties()
-							.createProperty().name( "hibernate.ogm.datastore.provider" ).value( "COUCHDB_EXPERIMENTAL" ).up()
+							.createProperty().name( "hibernate.ogm.datastore.provider" ).value( CouchDBDatastoreProvider.class.getName() ).up()
 							.createProperty().name( "hibernate.ogm.datastore.host" ).value( couchDBHostName ).up()
 							.createProperty().name( "hibernate.ogm.datastore.port" ).value( couchDBPortNumber ).up()
 							.createProperty().name( "hibernate.ogm.datastore.database" ).value( "ogm_test_database" ).up()

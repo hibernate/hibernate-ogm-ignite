@@ -28,10 +28,8 @@ import org.hibernate.ogm.datastore.redis.impl.RedisDatastoreProvider;
 import org.hibernate.ogm.datastore.spi.DatastoreConfiguration;
 import org.hibernate.ogm.datastore.spi.DatastoreProvider;
 import org.hibernate.ogm.model.key.spi.EntityKey;
-import org.hibernate.ogm.utils.GridDialectType;
 import org.hibernate.ogm.utils.TestHelper;
 import org.hibernate.ogm.utils.GridDialectTestHelper;
-
 import com.lambdaworks.redis.api.sync.RedisKeyCommands;
 import com.lambdaworks.redis.cluster.api.sync.RedisClusterCommands;
 import org.json.JSONException;
@@ -144,7 +142,7 @@ public class RedisTestHelper implements GridDialectTestHelper {
 	}
 
 	public static AbstractRedisDialect getDialect(RedisDatastoreProvider datastoreProvider) {
-		if ( TestHelper.getCurrentDialectType() == GridDialectType.REDIS_HASH ) {
+		if ( TestHelper.getCurrentGridDialectClass().equals( RedisHashDialect.class ) ) {
 			return new RedisHashDialect( datastoreProvider );
 		}
 		return new RedisJsonDialect( datastoreProvider );

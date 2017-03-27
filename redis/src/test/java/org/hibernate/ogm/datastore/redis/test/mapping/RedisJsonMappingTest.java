@@ -7,14 +7,12 @@
 package org.hibernate.ogm.datastore.redis.test.mapping;
 
 import org.hibernate.ogm.OgmSession;
+import org.hibernate.ogm.datastore.redis.RedisHashDialect;
 import org.hibernate.ogm.datastore.redis.test.RedisOgmTestCase;
-import org.hibernate.ogm.utils.GridDialectType;
 import org.hibernate.ogm.utils.SkipByGridDialect;
-
+import org.json.JSONException;
 import org.junit.Before;
 import org.junit.Test;
-
-import org.json.JSONException;
 import org.skyscreamer.jsonassert.JSONAssert;
 import org.skyscreamer.jsonassert.JSONCompareMode;
 
@@ -23,7 +21,7 @@ import org.skyscreamer.jsonassert.JSONCompareMode;
  *
  * @author Mark Paluch
  */
-@SkipByGridDialect(GridDialectType.REDIS_HASH)
+@SkipByGridDialect(dialects = RedisHashDialect.class)
 public class RedisJsonMappingTest extends RedisOgmTestCase {
 
 	@Before

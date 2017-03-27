@@ -19,10 +19,9 @@ import org.hibernate.ogm.backendtck.queries.Ending;
 import org.hibernate.ogm.backendtck.queries.OptionalStoryBranch;
 import org.hibernate.ogm.backendtck.queries.StoryBranch;
 import org.hibernate.ogm.backendtck.queries.StoryGame;
-import org.hibernate.ogm.utils.GridDialectType;
+import org.hibernate.ogm.datastore.redis.RedisHashDialect;
 import org.hibernate.ogm.utils.OgmTestCase;
 import org.hibernate.ogm.utils.SkipByGridDialect;
-
 import org.junit.Test;
 
 /**
@@ -31,7 +30,7 @@ import org.junit.Test;
  * @author Emmanuel Bernard
  * @author Gunnar Morling
  */
-@SkipByGridDialect(value = GridDialectType.REDIS_HASH, comment = "Redis Hash does not support embeddable associations")
+@SkipByGridDialect(dialects = RedisHashDialect.class, comment = "Redis Hash does not support embeddable associations")
 public class EmbeddableMappingTest extends OgmTestCase {
 
 	@Test

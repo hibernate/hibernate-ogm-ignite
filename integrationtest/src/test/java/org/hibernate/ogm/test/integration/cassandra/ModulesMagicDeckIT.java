@@ -9,6 +9,8 @@ package org.hibernate.ogm.test.integration.cassandra;
 import static org.hibernate.ogm.test.integration.testcase.util.CassandraConfigurationHelper.setCassandraHostName;
 import static org.hibernate.ogm.test.integration.testcase.util.CassandraConfigurationHelper.setCassandraPort;
 
+import org.hibernate.ogm.datastore.cassandra.impl.CassandraDatastoreProvider;
+import org.hibernate.ogm.jpa.HibernateOgmPersistence;
 import org.hibernate.ogm.test.integration.testcase.MagiccardsDatabaseScenario;
 import org.hibernate.ogm.test.integration.testcase.controller.MagicCardsCollectionBean;
 import org.hibernate.ogm.test.integration.testcase.model.MagicCard;
@@ -54,11 +56,11 @@ public class ModulesMagicDeckIT extends MagiccardsDatabaseScenario {
 			.version( "2.0" )
 			.createPersistenceUnit()
 				.name( "primary" )
-				.provider( "org.hibernate.ogm.jpa.HibernateOgmPersistence" )
+				.provider( HibernateOgmPersistence.class.getName() )
 				.getOrCreateProperties()
 					.createProperty().name( "hibernate.search.default.directory_provider" ).value( "ram" ).up()
 					.createProperty().name( "hibernate.ogm.datastore.database" ).value( "ogm_test_database" ).up()
-					.createProperty().name( "hibernate.ogm.datastore.provider" ).value( "cassandra_experimental" ).up()
+					.createProperty().name( "hibernate.ogm.datastore.provider" ).value( CassandraDatastoreProvider.class.getName() ).up()
 					.createProperty().name( "wildfly.jpa.hibernate.search.module" ).value( "org.hibernate.search.orm:${hibernate-search.module.slot}" ).up()
 					;
 

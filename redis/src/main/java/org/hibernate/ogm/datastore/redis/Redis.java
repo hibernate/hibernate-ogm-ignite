@@ -7,6 +7,7 @@
 package org.hibernate.ogm.datastore.redis;
 
 import org.hibernate.ogm.cfg.OgmProperties;
+import org.hibernate.ogm.datastore.redis.impl.RedisDatastoreProvider;
 import org.hibernate.ogm.datastore.redis.options.navigation.RedisGlobalContext;
 import org.hibernate.ogm.datastore.redis.options.navigation.impl.RedisEntityContextImpl;
 import org.hibernate.ogm.datastore.redis.options.navigation.impl.RedisGlobalContextImpl;
@@ -26,7 +27,7 @@ public class Redis implements DatastoreConfiguration<RedisGlobalContext> {
 	 *
 	 * @see OgmProperties#DATASTORE_PROVIDER
 	 */
-	public static final String DATASTORE_PROVIDER_NAME = "REDIS_EXPERIMENTAL";
+	public static final String DATASTORE_PROVIDER_NAME = RedisDatastoreProvider.class.getName();
 
 	@Override
 	public RedisGlobalContext getConfigurationBuilder(ConfigurationContext context) {

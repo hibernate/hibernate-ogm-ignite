@@ -6,28 +6,26 @@
  */
 package org.hibernate.ogm.datastore.redis.test.mapping;
 
+import static org.fest.assertions.Assertions.assertThat;
+import static org.fest.assertions.MapAssert.entry;
+
 import java.util.Collection;
 import java.util.Map;
 
 import org.hibernate.ogm.OgmSession;
+import org.hibernate.ogm.datastore.redis.RedisJsonDialect;
 import org.hibernate.ogm.datastore.redis.test.RedisOgmTestCase;
-import org.hibernate.ogm.utils.GridDialectType;
 import org.hibernate.ogm.utils.SkipByGridDialect;
-
+import org.json.JSONException;
 import org.junit.Before;
 import org.junit.Test;
-
-import org.json.JSONException;
-
-import static org.fest.assertions.Assertions.assertThat;
-import static org.fest.assertions.MapAssert.entry;
 
 /**
  * Test for Redis Hash mapping.
  *
  * @author Mark Paluch
  */
-@SkipByGridDialect(GridDialectType.REDIS_JSON)
+@SkipByGridDialect(dialects = RedisJsonDialect.class)
 public class RedisHashMappingTest extends RedisOgmTestCase {
 
 	@Before

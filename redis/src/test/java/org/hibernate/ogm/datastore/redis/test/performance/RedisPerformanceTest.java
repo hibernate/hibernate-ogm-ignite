@@ -13,10 +13,10 @@ import org.hibernate.Transaction;
 import org.hibernate.ogm.backendtck.associations.collection.types.Child;
 import org.hibernate.ogm.backendtck.associations.collection.types.GrandChild;
 import org.hibernate.ogm.backendtck.associations.collection.types.GrandMother;
+import org.hibernate.ogm.datastore.redis.RedisHashDialect;
 import org.hibernate.ogm.datastore.redis.test.RedisOgmTestCase;
 import org.hibernate.ogm.utils.BytemanHelper;
 import org.hibernate.ogm.utils.BytemanHelperStateCleanup;
-import org.hibernate.ogm.utils.GridDialectType;
 import org.hibernate.ogm.utils.SkipByGridDialect;
 import org.jboss.byteman.contrib.bmunit.BMRule;
 import org.jboss.byteman.contrib.bmunit.BMRules;
@@ -26,7 +26,7 @@ import org.junit.Test;
 /**
  * @author Guillaume Smet
  */
-@SkipByGridDialect({ GridDialectType.REDIS_HASH })
+@SkipByGridDialect(dialects = RedisHashDialect.class)
 public class RedisPerformanceTest extends RedisOgmTestCase {
 
 	@Rule

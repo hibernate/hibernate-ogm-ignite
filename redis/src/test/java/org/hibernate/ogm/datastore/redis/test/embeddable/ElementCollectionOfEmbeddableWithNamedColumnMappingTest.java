@@ -12,7 +12,7 @@ import org.hibernate.Transaction;
 import org.hibernate.ogm.OgmSession;
 import org.hibernate.ogm.backendtck.embeddable.Address;
 import org.hibernate.ogm.backendtck.embeddable.MultiAddressAccount;
-import org.hibernate.ogm.utils.GridDialectType;
+import org.hibernate.ogm.datastore.redis.RedisHashDialect;
 import org.hibernate.ogm.utils.OgmTestCase;
 import org.hibernate.ogm.utils.SkipByGridDialect;
 import org.hibernate.ogm.utils.TestForIssue;
@@ -23,7 +23,7 @@ import org.junit.Test;
  * @author Davide D'Alto
  * @author Guillaume Smet
  */
-@SkipByGridDialect(value = GridDialectType.REDIS_HASH, comment = "Redis Hash does not support embeddable associations")
+@SkipByGridDialect(dialects = RedisHashDialect.class, comment = "Redis Hash does not support embeddable associations")
 public class ElementCollectionOfEmbeddableWithNamedColumnMappingTest extends OgmTestCase {
 
 	private Address address1;

@@ -6,33 +6,32 @@
  */
 package org.hibernate.ogm.datastore.redis.test.mapping;
 
+import static org.fest.assertions.Assertions.assertThat;
+import static org.fest.assertions.MapAssert.entry;
+import static org.junit.Assume.assumeTrue;
+
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
 
 import org.hibernate.ogm.OgmSession;
 import org.hibernate.ogm.datastore.redis.AbstractRedisDialect;
+import org.hibernate.ogm.datastore.redis.RedisJsonDialect;
 import org.hibernate.ogm.datastore.redis.test.RedisOgmTestCase;
 import org.hibernate.ogm.datastore.redis.utils.RedisTestHelper;
-import org.hibernate.ogm.utils.GridDialectType;
 import org.hibernate.ogm.utils.SkipByGridDialect;
-
+import org.json.JSONException;
 import org.junit.Before;
 import org.junit.Test;
 
 import com.lambdaworks.redis.cluster.SlotHash;
 import com.lambdaworks.redis.cluster.api.sync.RedisClusterCommands;
-import org.json.JSONException;
-
-import static org.fest.assertions.Assertions.assertThat;
-import static org.fest.assertions.MapAssert.entry;
-import static org.junit.Assume.assumeTrue;
 
 /**
  * Test for Redis Hash mapping using Redis Cluster.
  *
  * @author Mark Paluch
  */
-@SkipByGridDialect(GridDialectType.REDIS_JSON)
+@SkipByGridDialect(dialects = RedisJsonDialect.class)
 public class RedisClusterHashMappingTest extends RedisOgmTestCase {
 
 	@Before

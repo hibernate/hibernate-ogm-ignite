@@ -6,6 +6,8 @@
  */
 package org.hibernate.ogm.datastore.redis.test.associations;
 
+import static org.fest.assertions.Assertions.assertThat;
+
 import java.util.Map;
 
 import org.hibernate.Session;
@@ -14,23 +16,19 @@ import org.hibernate.ogm.backendtck.associations.manytoone.Court;
 import org.hibernate.ogm.backendtck.associations.manytoone.Game;
 import org.hibernate.ogm.datastore.document.cfg.DocumentStoreProperties;
 import org.hibernate.ogm.datastore.document.options.AssociationStorageType;
+import org.hibernate.ogm.datastore.redis.RedisHashDialect;
 import org.hibernate.ogm.datastore.redis.impl.RedisDatastoreProvider;
 import org.hibernate.ogm.datastore.spi.DatastoreProvider;
-import org.hibernate.ogm.utils.GridDialectType;
 import org.hibernate.ogm.utils.OgmTestCase;
 import org.hibernate.ogm.utils.SkipByGridDialect;
-
 import org.junit.Test;
-
 import org.skyscreamer.jsonassert.JSONAssert;
 import org.skyscreamer.jsonassert.JSONCompareMode;
-
-import static org.fest.assertions.Assertions.assertThat;
 
 /**
  * @author Mark Paluch
  */
-@SkipByGridDialect(GridDialectType.REDIS_HASH)
+@SkipByGridDialect(dialects = RedisHashDialect.class)
 public class ManyToOneInEntityJsonRepresentationTest extends OgmTestCase {
 
 	@Override

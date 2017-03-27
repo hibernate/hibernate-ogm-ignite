@@ -6,6 +6,8 @@
  */
 package org.hibernate.ogm.test.integration.ehcache;
 
+import org.hibernate.ogm.datastore.ehcache.impl.EhcacheDatastoreProvider;
+import org.hibernate.ogm.jpa.HibernateOgmPersistence;
 import org.hibernate.ogm.test.integration.testcase.ModuleMemberRegistrationScenario;
 import org.hibernate.ogm.test.integration.testcase.util.ModuleMemberRegistrationDeployment;
 import org.jboss.arquillian.container.test.api.Deployment;
@@ -39,9 +41,9 @@ public class EhcacheModuleMemberRegistrationUsingJBossDeploymentStructureIT exte
 			.version( "2.0" )
 			.createPersistenceUnit()
 				.name( "primary" )
-				.provider( "org.hibernate.ogm.jpa.HibernateOgmPersistence" )
+				.provider( HibernateOgmPersistence.class.getName() )
 				.getOrCreateProperties()
-					.createProperty().name( "hibernate.ogm.datastore.provider" ).value( "ehcache" ).up()
+					.createProperty().name( "hibernate.ogm.datastore.provider" ).value( EhcacheDatastoreProvider.class.getName() ).up()
 					.createProperty().name( "hibernate.search.default.directory_provider" ).value( "ram" ).up()
 					.createProperty().name( "wildfly.jpa.hibernate.search.module" ).value( "org.hibernate.search.orm:${hibernate-search.module.slot}" ).up()
 				.up().up();
