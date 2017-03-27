@@ -25,7 +25,6 @@ import com.fasterxml.jackson.databind.annotation.JsonSerialize.Inclusion;
 /**
  * Contains the information related to a {@link Tuple}. The use of this class is to serialize and deserialize the JSON
  * stored in Redis; Documents have the following structure:
- * <p>
  * <pre>
  * {@code
  * {
