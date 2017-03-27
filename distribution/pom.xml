@@ -14,14 +14,14 @@
         <relativePath>../pom.xml</relativePath>
     </parent>
 
-    <artifactId>hibernate-ogm-distribution</artifactId>
+    <artifactId>hibernate-ogm-contrib-distribution</artifactId>
     <packaging>pom</packaging>
 
-    <name>Hibernate OGM Distribution</name>
-    <description>Creates the distribution package for Hibernate OGM</description>
+    <name>Hibernate OGM Contrib Distribution</name>
+    <description>Creates the distribution package for Hibernate OGM contrib</description>
 
     <properties>
-        <assembly.name>hibernate-ogm-${project.version}</assembly.name>
+        <assembly.name>hibernate-ogm-contrib-${project.version}</assembly.name>
         <maven.deploy.skip>true</maven.deploy.skip>
     </properties>
 
@@ -40,24 +40,6 @@
             <plugin>
                 <artifactId>maven-dependency-plugin</artifactId>
                 <executions>
-                    <execution>
-                        <id>copy-model</id>
-                        <phase>prepare-package</phase>
-                        <goals>
-                            <goal>copy</goal>
-                        </goals>
-                        <configuration>
-                            <artifactItems>
-                                <artifactItem>
-                                    <groupId>org.apache.lucene</groupId>
-                                    <artifactId>lucene-core</artifactId>
-                                    <version>${luceneVersion}</version>
-                                    <type>jar</type>
-                                </artifactItem>
-                           </artifactItems>
-                            <outputDirectory>${project.build.directory}/lib/neo4j</outputDirectory>
-                        </configuration>
-                    </execution>
                     <execution>
                         <id>guava-for-lettuce-redis</id>
                         <phase>prepare-package</phase>
@@ -84,33 +66,7 @@
     <dependencies>
         <dependency>
             <groupId>org.hibernate.ogm</groupId>
-            <artifactId>hibernate-ogm-core</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.hibernate.ogm</groupId>
-            <artifactId>hibernate-ogm-infinispan</artifactId>
-            <exclusions>
-                <exclusion>
-                    <artifactId>jboss-logging</artifactId>
-                    <groupId>org.jboss.logging</groupId>
-                </exclusion>
-            </exclusions>
-        </dependency>
-        <dependency>
-            <groupId>org.hibernate.ogm</groupId>
-            <artifactId>hibernate-ogm-infinispan-remote</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.hibernate.ogm</groupId>
             <artifactId>hibernate-ogm-ehcache</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.hibernate.ogm</groupId>
-            <artifactId>hibernate-ogm-mongodb</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.hibernate.ogm</groupId>
-            <artifactId>hibernate-ogm-neo4j</artifactId>
         </dependency>
         <dependency>
             <groupId>org.hibernate.ogm</groupId>
@@ -123,71 +79,6 @@
         <dependency>
             <groupId>org.hibernate.ogm</groupId>
             <artifactId>hibernate-ogm-redis</artifactId>
-        </dependency>
-
-        <!--
-            The following dependencies are listed because their are optional or shared among different backends.
-            Because of the way "useTransitiveFiltering" works in the assembly plugin, we also add some exclusion
-            patterns so that a common transitive dependency is added in the right folder.
-        -->
-        <dependency>
-            <groupId>org.hibernate</groupId>
-            <artifactId>hibernate-search-orm</artifactId>
-            <exclusions>
-                <exclusion>
-                    <artifactId>jboss-logging</artifactId>
-                    <groupId>org.jboss.logging</groupId>
-                </exclusion>
-            </exclusions>
-        </dependency>
-        <dependency>
-            <groupId>org.hibernate.hql</groupId>
-            <artifactId>hibernate-hql-lucene</artifactId>
-            <exclusions>
-                <exclusion>
-                    <artifactId>hibernate-jpa-2.1-api</artifactId>
-                    <groupId>org.hibernate.javax.persistence</groupId>
-                </exclusion>
-                <exclusion>
-                    <artifactId>jboss-logging</artifactId>
-                    <groupId>org.jboss.logging</groupId>
-                </exclusion>
-            </exclusions>
-        </dependency>
-        <dependency>
-            <groupId>org.parboiled</groupId>
-            <artifactId>parboiled-java</artifactId>
-        </dependency>
-
-        <!-- Provided dependencies -->
-        <dependency>
-            <groupId>org.jboss.spec.javax.transaction</groupId>
-            <artifactId>jboss-transaction-api_1.2_spec</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.jboss.logging</groupId>
-            <artifactId>jboss-logging-annotations</artifactId>
-        </dependency>
-
-        <!-- Not required by the infinispan module itself, but we still want to package these-->
-        <dependency>
-            <groupId>org.infinispan</groupId>
-            <artifactId>infinispan-directory-provider</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.infinispan</groupId>
-            <artifactId>infinispan-lucene-directory</artifactId>
-            <!-- We are excluding lucene libraries since they are already in the optional folder -->
-            <exclusions>
-                <exclusion>
-                    <groupId>org.apache.lucene</groupId>
-                    <artifactId>lucene-core</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>org.apache.lucene</groupId>
-                    <artifactId>lucene-analyzers-common</artifactId>
-                </exclusion>
-            </exclusions>
         </dependency>
     </dependencies>
 
@@ -205,7 +96,7 @@
             <dependencies>
                 <dependency>
                     <groupId>org.hibernate.ogm</groupId>
-                    <artifactId>hibernate-ogm-javadoc</artifactId>
+                    <artifactId>hibernate-ogm-contrib-javadoc</artifactId>
                     <version>${project.version}</version>
                     <classifier>javadoc</classifier>
                 </dependency>

@@ -10,15 +10,15 @@
 
     <parent>
         <groupId>org.hibernate.ogm</groupId>
-        <artifactId>hibernate-ogm-documentation</artifactId>
+        <artifactId>hibernate-ogm-contrib-documentation</artifactId>
         <version>5.2.0-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
-    <artifactId>hibernate-ogm-javadoc</artifactId>
+    <artifactId>hibernate-ogm-contrib-javadoc</artifactId>
     <packaging>jar</packaging>
 
-    <name>Hibernate OGM Javadoc</name>
+    <name>Hibernate OGM Cotrib Javadoc</name>
     <description>Hibernate OGM helper module to build aggregated javadoc</description>
 
     <properties>
@@ -42,22 +42,6 @@
         <dependency>
             <groupId>org.hibernate.ogm</groupId>
             <artifactId>hibernate-ogm-ehcache</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.hibernate.ogm</groupId>
-            <artifactId>hibernate-ogm-infinispan</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.hibernate.ogm</groupId>
-            <artifactId>hibernate-ogm-mongodb</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>com.github.fakemongo</groupId>
-            <artifactId>fongo</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.hibernate.ogm</groupId>
-            <artifactId>hibernate-ogm-neo4j</artifactId>
         </dependency>
         <dependency>
             <groupId>org.hibernate.ogm</groupId>
@@ -105,11 +89,7 @@
                         </dependency>
                     </additionalDependencies>
                     <sourcepath>
-                        ${basedir}/../../core/src/main/java;
                         ${basedir}/../../ehcache/src/main/java;
-                        ${basedir}/../../infinispan/src/main/java;
-                        ${basedir}/../../mongodb/src/main/java;
-                        ${basedir}/../../neo4j/src/main/java;
                         ${basedir}/../../couchdb/src/main/java;
                         ${basedir}/../../redis/src/main/java;
                         ${basedir}/../../cassandra/src/main/java;

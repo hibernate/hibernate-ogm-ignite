@@ -2,11 +2,11 @@
     <modelVersion>4.0.0</modelVersion>
     <parent>
         <groupId>org.hibernate.ogm</groupId>
-        <artifactId>hibernate-ogm-parent</artifactId>
+        <artifactId>hibernate-ogm-contrib-parent</artifactId>
         <version>5.2.0-SNAPSHOT</version>
     </parent>
 
-    <artifactId>hibernate-ogm-integrationtest</artifactId>
+    <artifactId>hibernate-ogm-contrib-integrationtest</artifactId>
     <name>Hibernate OGM Integration and performance Tests</name>
     <description>Hibernate OGM integration and performance tests</description>
 
@@ -67,10 +67,7 @@
                         <configuration>
                             <redirectTestOutputToFile>true</redirectTestOutputToFile>
                             <includes>
-                                <include>**/neo4j/embedded/*IT.java</include>
-                                <include>**/mongodb/*IT.java</include>
                                 <include>**/ehcache/*IT.java</include>
-                                <include>**/infinispan/*IT.java</include>
                             </includes>
                         </configuration>
                     </execution>
@@ -127,6 +124,15 @@
                                         <outputDirectory>${jboss.home}/modules</outputDirectory>
                                     </artifactItem>
                                     <artifactItem>
+                                        <groupId>${project.groupId}</groupId>
+                                        <artifactId>hibernate-ogm-contrib-modules</artifactId>
+                                        <classifier>${hibernateWildflyClassifier}</classifier>
+                                        <version>${project.version}</version>
+                                        <type>zip</type>
+                                        <overWrite>false</overWrite>
+                                        <outputDirectory>${jboss.home}/modules</outputDirectory>
+                                    </artifactItem>
+                                     <artifactItem>
                                         <groupId>org.infinispan</groupId>
                                         <artifactId>infinispan-as-embedded-modules</artifactId>
                                         <version>${infinispanVersion}</version>
@@ -134,7 +140,7 @@
                                         <overWrite>false</overWrite>
                                         <outputDirectory>${jboss.home}/modules</outputDirectory>
                                     </artifactItem>
-                                    <!--
+                                   <!--
                                       Currently these are (mistakenly?) included in the above package org.infinispan:infinispan-as-embedded-modules
                                       See https://issues.jboss.org/browse/ISPN-7006
                                     <artifactItem>
@@ -167,17 +173,7 @@
         <!-- Backends -->
         <dependency>
             <groupId>${project.groupId}</groupId>
-            <artifactId>hibernate-ogm-neo4j</artifactId>
-            <scope>provided</scope>
-        </dependency>
-        <dependency>
-            <groupId>${project.groupId}</groupId>
             <artifactId>hibernate-ogm-couchdb</artifactId>
-            <scope>provided</scope>
-        </dependency>
-        <dependency>
-            <groupId>${project.groupId}</groupId>
-            <artifactId>hibernate-ogm-mongodb</artifactId>
             <scope>provided</scope>
         </dependency>
         <dependency>
@@ -185,8 +181,18 @@
             <artifactId>hibernate-ogm-redis</artifactId>
             <scope>provided</scope>
         </dependency>
+        <dependency>
+            <groupId>${project.groupId}</groupId>
+            <artifactId>hibernate-ogm-cassandra</artifactId>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>${project.groupId}</groupId>
+            <artifactId>hibernate-ogm-ehcache</artifactId>
+            <scope>provided</scope>
+        </dependency>
 
-        <!-- Dependencies for Hot Rod server bootstrap -->
+       <!-- Dependencies for Hot Rod server bootstrap -->
         <dependency>
             <groupId>${project.groupId}</groupId>
             <artifactId>hibernate-ogm-infinispan-remote</artifactId>
@@ -279,6 +285,12 @@
             </exclusions>
         </dependency>
 
+        <dependency>
+            <groupId>org.hibernate.ogm</groupId>
+            <artifactId>hibernate-ogm-integrationtest</artifactId>
+            <type>test-jar</type>
+            <scope>test</scope>
+        </dependency>
         <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
@@ -414,204 +426,6 @@
                                     <redirectTestOutputToFile>true</redirectTestOutputToFile>
                                     <includes>
                                         <include>**/cassandra/*IT.java</include>
-                                    </includes>
-                                </configuration>
-                            </execution>
-                        </executions>
-                    </plugin>
-                </plugins>
-            </build>
-        </profile>
-
-        <profile>
-            <id>run-neo4j-wildfly-tests</id>
-            <!-- To run the tests you need to define the
-                environment properties NEO4J_HOSTNAME, NEO4J_USERNAME and NEO4J_PASSWORD -->
-            <activation>
-                <property>
-                    <name>env.NEO4J_HOSTNAME</name>
-                </property>
-            </activation>
-            <build>
-                <plugins>
-                   <plugin>
-                        <artifactId>maven-failsafe-plugin</artifactId>
-                        <executions>
-                            <execution>
-                                <id>neo4j-integration-tests</id>
-                                <goals>
-                                    <goal>integration-test</goal>
-                                    <goal>verify</goal>
-                                </goals>
-                                <configuration>
-                                    <redirectTestOutputToFile>true</redirectTestOutputToFile>
-                                    <includes>
-                                        <include>**/neo4j/remote/**/*IT.java</include>
-                                    </includes>
-                                </configuration>
-                            </execution>
-                        </executions>
-                    </plugin>
-                </plugins>
-            </build>
-        </profile>
-
-        <profile>
-            <id>embedded-mongodb</id>
-            <activation>
-                <property>
-                    <name>!useExternalMongoDb</name>
-                </property>
-            </activation>
-            <build>
-                <plugins>
-                    <plugin>
-                        <groupId>org.codehaus.gmaven</groupId>
-                        <artifactId>gmaven-plugin</artifactId>
-                        <executions>
-                            <execution>
-                                <id>prepare-mongodb-directories</id>
-                                <phase>pre-integration-test</phase>
-                                <goals>
-                                    <goal>execute</goal>
-                                </goals>
-                                <configuration>
-                                    <source>
-                                    println "[INFO] ------------------------------------------------------------------------"
-                                    println "[INFO] MONGO DB BUILD INFO                                                     "
-                                    println "[INFO] ------------------------------------------------------------------------"
-                                    println "[INFO] Extracting MongoDB distribution to " + project.properties['embeddedMongoDbTempDir'] + " and        "
-                                    println "[INFO] launching MongoDB process on port " + project.properties['embeddedMongoDbPort'] + ". The properties"
-                                    println "[INFO] 'embeddedMongoDbTempDir' and 'embeddedMongoDbPort' can be used to       "
-                                    println "[INFO] specify another directory and/or port like this:                        "
-                                    println "[INFO]                                                                         "
-                                    println "[INFO]     mvn test -DembeddedMongoDbTempDir=%dir% -DembeddedMongoDbPort=%port%"
-                                    println "[INFO]                                                                         "
-                                    println "[INFO] To use an external Mongo DB instance instead, specify the               "
-                                    println "[INFO] 'useExternalMongoDb' property:                                          "
-                                    println "[INFO]                                                                         "
-                                    println "[INFO]     mvn test -DuseExternalMongoDb                                       "
-                                    println "[INFO]                                                                         "
-                                    println "[INFO] In this case, host and port are retrieved from the environment          "
-                                    println "[INFO] variables MONGODB_HOSTNAME and MONGODB_PORT, respectively.              "
-                                    println "[INFO] ------------------------------------------------------------------------"
-
-                                    def tempDir = new File(project.properties['embeddedMongoDbTempDir'])
-                                    ant.delete(dir : tempDir)
-                                    ant.mkdir(dir : tempDir)
-
-                                    def logDir = new File(project.properties['embeddedMongoDbLogDir'])
-                                    ant.delete(dir : logDir)
-                                    ant.mkdir(dir : logDir)
-
-                                    System.setProperty( "de.flapdoodle.embed.io.tmpdir", project.properties['embeddedMongoDbTempDir'] )
-                                    </source>
-                                </configuration>
-                            </execution>
-                        </executions>
-                    </plugin>
-                    <plugin>
-                        <artifactId>maven-failsafe-plugin</artifactId>
-                        <configuration>
-                            <environmentVariables>
-                                <MONGODB_PORT>${embeddedMongoDbPort}</MONGODB_PORT>
-                                <MONGODB_HOSTNAME>${embeddedMongoDbBindIp}</MONGODB_HOSTNAME>
-                            </environmentVariables>
-                        </configuration>
-                    </plugin>
-                    <plugin>
-                        <groupId>com.github.joelittlejohn.embedmongo</groupId>
-                        <artifactId>embedmongo-maven-plugin</artifactId>
-                        <executions>
-                            <execution>
-                                <id>start-embedded-mongodb</id>
-                                <phase>pre-integration-test</phase>
-                                <goals>
-                                    <goal>start</goal>
-                                </goals>
-                            </execution>
-                            <execution>
-                                <id>stop-embedded-mongodb</id>
-                                <phase>post-integration-test</phase>
-                                <goals>
-                                    <goal>stop</goal>
-                                </goals>
-                            </execution>
-                        </executions>
-                    </plugin>
-                </plugins>
-            </build>
-        </profile>
-
-        <profile>
-            <id>hotrod-server</id>
-            <activation>
-                <property>
-                    <name>!skipHotRod</name>
-                </property>
-            </activation>
-            <build>
-                <plugins>
-                    <plugin>
-                        <groupId>org.apache.maven.plugins</groupId>
-                        <artifactId>maven-dependency-plugin</artifactId>
-                        <executions>
-                            <execution>
-                                <id>unpack-infinispan-server</id>
-                                <phase>process-test-resources</phase>
-                                <goals>
-                                    <goal>unpack</goal>
-                                </goals>
-                                <configuration>
-                                    <artifactItems>
-                                        <artifactItem>
-                                            <groupId>org.infinispan.server</groupId>
-                                            <artifactId>infinispan-server-build</artifactId>
-                                            <version>${infinispanVersion}</version>
-                                            <type>zip</type>
-                                            <outputDirectory>${project.build.directory}/node1</outputDirectory>
-                                        </artifactItem>
-                                    </artifactItems>
-                                </configuration>
-                            </execution>
-                        </executions>
-                    </plugin>
-                    <plugin>
-                        <groupId>org.apache.maven.plugins</groupId>
-                        <artifactId>maven-resources-plugin</artifactId>
-                        <executions>
-                            <!-- Copy the WildFly configuration files so we can use our custom configurations -->
-                            <execution>
-                                <id>configure-infinispan-server</id>
-                                <phase>process-test-resources</phase>
-                                <goals>
-                                    <goal>copy-resources</goal>
-                                </goals>
-                                <configuration>
-                                    <outputDirectory>${project.build.directory}/node1/infinispan-server-${infinispanVersion}/standalone/configuration</outputDirectory>
-                                    <overwrite>true</overwrite>
-                                    <resources>
-                                        <resource>
-                                            <directory>${basedir}/infinispan-server-testconfig</directory>
-                                        </resource>
-                                    </resources>
-                                </configuration>
-                            </execution>
-                        </executions>
-                    </plugin>
-                    <plugin>
-                        <artifactId>maven-failsafe-plugin</artifactId>
-                        <executions>
-                            <execution>
-                                <id>neo4j-integration-tests</id>
-                                <goals>
-                                    <goal>integration-test</goal>
-                                    <goal>verify</goal>
-                                </goals>
-                                <configuration>
-                                    <redirectTestOutputToFile>true</redirectTestOutputToFile>
-                                    <includes>
-                                        <include>**/infinispanremote/*IT.java</include>
                                     </includes>
                                 </configuration>
                             </execution>
