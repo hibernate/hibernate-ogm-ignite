@@ -14,16 +14,14 @@
         <version>5.2.0-SNAPSHOT</version>
     </parent>
 
-    <artifactId>hibernate-ogm-contrib-parent</artifactId>
+    <artifactId>hibernate-ogm-ignite-parent</artifactId>
     <packaging>pom</packaging>
 
     <name>Hibernate OGM Contrib Aggregator</name>
     <description>Hibernate OGM Contrib Aggregator POM</description>
 
     <modules>
-        <module>couchdb</module>
-        <module>cassandra</module>
-        <module>redis</module>
+        <module>ignite</module>
     </modules>
 
     <properties>
@@ -47,28 +45,6 @@
           -->
         <jgroups.bind_addr>127.0.0.1</jgroups.bind_addr>
         <skipUnitTests>false</skipUnitTests>
-
-        <!-- Redis -->
-        <lettuceVersion>4.2.1.Final</lettuceVersion>
-        <lettuceRxjavaVersion>1.1.6</lettuceRxjavaVersion>
-        <lettuceCommonsPoolVersion>2.4.2</lettuceCommonsPoolVersion>
-        <lettuceGuavaVersion>18.0</lettuceGuavaVersion> <!-- Currently in sync with the version of Wildfly -->
-
-        <!-- Ehcache -->
-        <ehcacheVersion>2.6.11</ehcacheVersion>
-
-        <!-- Cassandra -->
-        <cassandraVersion>3.1.0</cassandraVersion>
-        <!-- Update dependency versions accordingly when updating C*  -->
-        <!--
-             The following versions are required for the Cassandra driver; We don't expose a managed versions
-             of these libraries through this BOM, these versions are for internal usage to make sure the right
-             JARs end up in the C* driver WildFly module
-        -->
-        <cassandraCodahaleMetricsVersion>3.1.2</cassandraCodahaleMetricsVersion>
-
-        <!-- Guava version for Cassandra-->
-        <cassandraGuavaVersion>16.0.1</cassandraGuavaVersion>
 
         <hibernate-search.module.slot>${hibernateSearchVersion}-orm51</hibernate-search.module.slot>
 
@@ -766,7 +742,6 @@
                 <jdk>1.8</jdk>
             </activation>
             <modules>
-                <module>ehcache</module>
                 <!-- The WildFly modules require the other modules to be enabled too -->
                 <module>modules</module>
             </modules>

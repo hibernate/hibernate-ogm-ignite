@@ -9,76 +9,34 @@
     <modelVersion>4.0.0</modelVersion>
     <parent>
         <groupId>org.hibernate.ogm</groupId>
-        <artifactId>hibernate-ogm-parent</artifactId>
+        <artifactId>hibernate-ogm-ignite-parent</artifactId>
         <version>5.2.0-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
-    <artifactId>hibernate-ogm-contrib-distribution</artifactId>
+    <artifactId>hibernate-ogm-ignite-distribution</artifactId>
     <packaging>pom</packaging>
 
-    <name>Hibernate OGM Contrib Distribution</name>
-    <description>Creates the distribution package for Hibernate OGM contrib</description>
+    <name>Hibernate OGM Apache Ignite  Distribution</name>
+    <description>Creates the distribution package for Hibernate OGM Apache Ignite</description>
 
     <properties>
-        <assembly.name>hibernate-ogm-contrib-${project.version}</assembly.name>
+        <assembly.name>hibernate-ogm-ignite-${project.version}</assembly.name>
         <maven.deploy.skip>true</maven.deploy.skip>
     </properties>
 
     <build>
         <plugins>
             <plugin>
-                <artifactId>maven-enforcer-plugin</artifactId>
-                <configuration>
-                    <!-- Skipping it because neo4j uses a different Lucene version -->
-                    <skip>true</skip>
-                </configuration>
-            </plugin>
-            <plugin>
                 <artifactId>maven-assembly-plugin</artifactId>
-            </plugin>
-            <plugin>
-                <artifactId>maven-dependency-plugin</artifactId>
-                <executions>
-                    <execution>
-                        <id>guava-for-lettuce-redis</id>
-                        <phase>prepare-package</phase>
-                        <goals>
-                            <goal>copy</goal>
-                        </goals>
-                        <configuration>
-                            <artifactItems>
-                                <artifactItem>
-                                    <groupId>com.google.guava</groupId>
-                                    <artifactId>guava</artifactId>
-                                    <version>${lettuceGuavaVersion}</version>
-                                    <type>jar</type>
-                                </artifactItem>
-                           </artifactItems>
-                            <outputDirectory>${project.build.directory}/lib/redis</outputDirectory>
-                        </configuration>
-                    </execution>
-                </executions>
             </plugin>
         </plugins>
     </build>
 
     <dependencies>
         <dependency>
-            <groupId>org.hibernate.ogm</groupId>
-            <artifactId>hibernate-ogm-ehcache</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.hibernate.ogm</groupId>
-            <artifactId>hibernate-ogm-couchdb</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.hibernate.ogm</groupId>
-            <artifactId>hibernate-ogm-cassandra</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.hibernate.ogm</groupId>
-            <artifactId>hibernate-ogm-redis</artifactId>
+            <groupId>${project.groupId}</groupId>
+            <artifactId>hibernate-ogm-ignite</artifactId>
         </dependency>
     </dependencies>
 
@@ -96,7 +54,7 @@
             <dependencies>
                 <dependency>
                     <groupId>org.hibernate.ogm</groupId>
-                    <artifactId>hibernate-ogm-contrib-javadoc</artifactId>
+                    <artifactId>hibernate-ogm-ignite-javadoc</artifactId>
                     <version>${project.version}</version>
                     <classifier>javadoc</classifier>
                 </dependency>
