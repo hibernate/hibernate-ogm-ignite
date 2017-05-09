@@ -598,7 +598,7 @@ public class IgniteDialect extends BaseGridDialect implements GridDialect, Query
 			throw new UnsupportedOperationException( "Not implemented. Can't find cache name" );
 		}
 
-		QueryHints hints = ( new QueryHints.Builder( queryParameters.getQueryHints() ) ).build();
+		QueryHints hints = ( new QueryHints.Builder( null /* queryParameters.getQueryHints() */ ) ).build();
 		SqlFieldsQuery sqlQuery = provider.createSqlFieldsQueryWithLog(
 				backendQuery.getQuery().getSql(),
 				hints,
