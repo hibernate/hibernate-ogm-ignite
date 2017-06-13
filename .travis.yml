@@ -12,19 +12,23 @@ addons:
 #      - $(find $HOME -name surefire-reports | tr "\n" ":")
 #      - $(find $HOME -name failsafe-reports | tr "\n" ":")
 #  s3_region: 'us-west-2'
-services:
-  - redis-server
+##services:
+##  - redis-server
 cache:
   directories:
     - $HOME/.m2
 env:
   global:
-    - REDIS_HOSTNAME=127.0.0.1
-    - COUCHDB_HOSTNAME=127.0.0.1
-    - CASSANDRA_VERSION=3.0.7 CASSANDRA_HOSTNAME=127.0.0.1
+##    - REDIS_HOSTNAME=127.0.0.1
+##    - COUCHDB_HOSTNAME=127.0.0.1
+##    - CASSANDRA_VERSION=3.0.7 CASSANDRA_HOSTNAME=127.0.0.1
 install:
-  - sudo apt-get install -qq couchdb
-  - bash travis/setup-cassandra.sh 2>&1 > cassandra.log
+  - mvn -v
+  - git clone https://github.com/hibernate/hibernate-ogm.git
+  - cd hibernate-ogm
+  - 
+##  - sudo apt-get install -qq couchdb
+##  - bash travis/setup-cassandra.sh 2>&1 > cassandra.log
   # The Maven install provided by Travis is outdated, use Maven wrapper to get the latest version
   - mvn -N io.takari:maven:wrapper
   - ./mvnw -v
@@ -32,11 +36,11 @@ install:
   - travis_wait ./mvnw -B -q -s settings-example.xml -Ptest -DskipTests=true -Dmaven.javadoc.skip=true -DskipDistro=true install
   # we run checkstyle first to fail fast if there is a styling error
   - ./mvnw -s settings-example.xml -DskipDistro=true checkstyle:check
-matrix:
-  - env: DATASTORE=couchdb
-  - env: DATASTORE=ehcache
-  - env: DATASTORE=cassandra
-  - env: DATASTORE=redis
+##matrix:
+##  - env: DATASTORE=couchdb
+##  - env: DATASTORE=ehcache
+##  - env: DATASTORE=cassandra
+##  - env: DATASTORE=redis
 script:
   - ./mvnw -s settings-example.xml clean install
   - if [ "$" == "couchdb" ]; then  ./mvnw -s settings-example.xml clean install -pl couchdb; fi

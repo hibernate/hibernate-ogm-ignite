@@ -20,10 +20,6 @@
     <name>Hibernate OGM Contrib Aggregator</name>
     <description>Hibernate OGM Contrib Aggregator POM</description>
 
-    <modules>
-        <module>ignite</module>
-    </modules>
-
     <properties>
         <!-- JDK version required to build OGM; requiring 1.8 as WildFly 10 requires JDK 1.8; We still create
              1.7 byte code to run in other environments -->
@@ -63,6 +59,10 @@
         <igniteVersion>1.8.0</igniteVersion>
         <igniteCommonsLang3Version>3.3.2</igniteCommonsLang3Version>
     </properties>
+
+    <modules>
+        <module>ignite</module>
+    </modules>
 
     <!-- Only for management of test-scoped dependencies; All other dependencies (which are exposed to users) are
          managed in the BOM -->
