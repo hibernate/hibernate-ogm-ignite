@@ -40,6 +40,7 @@
         <dependency>
             <groupId>org.hibernate.ogm</groupId>
             <artifactId>hibernate-ogm-ignite</artifactId>
+			<version>${project.parent.version}</version>
         </dependency>
     </dependencies>
 
