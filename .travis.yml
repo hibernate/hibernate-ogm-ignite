@@ -5,23 +5,11 @@ addons:
   apt:
     packages:
       - oracle-java8-installer
-##      - xmlstarlet
-# might be useful to push reports to an S3 bucket
-#  artifacts:
-#    paths:
-#      - $(find $HOME -name surefire-reports | tr "\n" ":")
-#      - $(find $HOME -name failsafe-reports | tr "\n" ":")
-#  s3_region: 'us-west-2'
-##services:
-##  - redis-server
 cache:
   directories:
     - $HOME/.m2
 env:
   global:
-##    - REDIS_HOSTNAME=127.0.0.1
-##    - COUCHDB_HOSTNAME=127.0.0.1
-##    - CASSANDRA_VERSION=3.0.7 CASSANDRA_HOSTNAME=127.0.0.1
 install:
   # install latest Hibernate OGM snapshot
   - git clone https://github.com/hibernate/hibernate-ogm.git
@@ -29,7 +17,7 @@ install:
   # The Maven install provided by Travis is outdated, use Maven wrapper to get the latest version
   - mvn -N -q io.takari:maven:wrapper
   - ./mvnw -v
-  - travis_wait ./mvnw -B -s settings-example.xml -DskipITs -DskipDistro -DskipDocs -DskipTests install
+  - travis_wait ./mvnw -B -q -s settings-example.xml -DskipITs -DskipDistro -DskipDocs -DskipTests install
   - cd ..
   # The Maven install provided by Travis is outdated, use Maven wrapper to get the latest version
   - mvn -N -q io.takari:maven:wrapper
@@ -37,17 +25,10 @@ install:
   - travis_wait ./mvnw -B -q -s settings-example.xml -Ptest -DskipTests=true -Dmaven.javadoc.skip=true -DskipDistro=true install
   # we run checkstyle first to fail fast if there is a styling error
   - ./mvnw -s settings-example.xml -DskipDistro=true checkstyle:check
-##matrix:
-##  - env: DATASTORE=couchdb
-##  - env: DATASTORE=ehcache
-##  - env: DATASTORE=cassandra
-##  - env: DATASTORE=redis
+matrix:
+  fast_finish: true
 script:
   - ./mvnw -s settings-example.xml clean install
-##  - if [ "$" == "couchdb" ]; then  ./mvnw -s settings-example.xml clean install -pl couchdb; fi
-##  - if [ "$" == "ehcache" ]; then  ./mvnw -s settings-example.xml clean install -pl ehcache; fi
-##  - if [ "$" == "cassandra" ]; then  ./mvnw -s settings-example.xml clean install -pl cassandra; fi
-##  - if [ "$" == "redis" ]; then  ./mvnw -s settings-example.xml clean install -pl redis; fi
   - ./mvnw -s settings-example.xml clean install -DskipTests && ./mvnw -s settings-example.xml clean install -pl modules,integrationtest
   - ./mvnw -s settings-example.xml clean install -DskipTests && ./mvnw -s settings-example.xml clean install -pl documentation,distribution
 after_script:
