@@ -17,7 +17,7 @@
     <artifactId>hibernate-ogm-ignite-distribution</artifactId>
     <packaging>pom</packaging>
 
-    <name>Hibernate OGM Apache Ignite  Distribution</name>
+    <name>Hibernate OGM Apache Ignite Distribution</name>
     <description>Creates the distribution package for Hibernate OGM Apache Ignite</description>
 
     <properties>
@@ -53,7 +53,7 @@
             </activation>
             <dependencies>
                 <dependency>
-                    <groupId>org.hibernate.ogm</groupId>
+                    <groupId>${project.groupId}</groupId>
                     <artifactId>hibernate-ogm-ignite-javadoc</artifactId>
                     <version>${project.version}</version>
                     <classifier>javadoc</classifier>
