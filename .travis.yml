@@ -29,7 +29,7 @@ install:
   # The Maven install provided by Travis is outdated, use Maven wrapper to get the latest version
   - mvn -N -q io.takari:maven:wrapper
   - ./mvnw -v
-  - travis_wait ./mvnw -B -s settings-example.xml -DskipITs -DskipDistro -DskipDocs -DskipTests install -pl bom,core
+  - travis_wait ./mvnw -B -s settings-example.xml -DskipITs -DskipDistro -DskipDocs -DskipTests install
   - cd ..
   # The Maven install provided by Travis is outdated, use Maven wrapper to get the latest version
   - mvn -N -q io.takari:maven:wrapper
