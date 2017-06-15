@@ -24,63 +24,18 @@
 
     <!-- Configure the module artifacts which make it into the distribution bundle -->
     <dependencySets>
-        <!--
+<!--
         #######################################################################
-        #  hibernate-ogm-ehcache
+        #  hibernate-ogm-ignite
         #######################################################################
-         -->
+-->
         <dependencySet>
             <useProjectArtifact>false</useProjectArtifact>
-            <outputDirectory>dist/lib/ehcache</outputDirectory>
+            <outputDirectory>dist/lib/ignite</outputDirectory>
             <useTransitiveFiltering>true</useTransitiveFiltering>
             <unpack>false</unpack>
             <includes>
-                <include>org.hibernate.ogm:hibernate-ogm-ehcache</include>
-            </includes>
-        </dependencySet>
-
-        <!--
-        #######################################################################
-        #  hibernate-ogm-couchdb
-        #######################################################################
-         -->
-        <dependencySet>
-            <useProjectArtifact>false</useProjectArtifact>
-            <outputDirectory>dist/lib/couchdb</outputDirectory>
-            <useTransitiveFiltering>true</useTransitiveFiltering>
-            <unpack>false</unpack>
-            <includes>
-                <include>org.hibernate.ogm:hibernate-ogm-couchdb</include>
-             </includes>
-        </dependencySet>
-
-        <!--
-        #######################################################################
-        #  hibernate-ogm-cassandra
-        #######################################################################
-        -->
-        <dependencySet>
-            <useProjectArtifact>false</useProjectArtifact>
-            <outputDirectory>dist/lib/cassandra</outputDirectory>
-            <useTransitiveFiltering>true</useTransitiveFiltering>
-            <unpack>false</unpack>
-            <includes>
-                <include>org.hibernate.ogm:hibernate-ogm-cassandra</include>
-            </includes>
-        </dependencySet>
-
-        <!--
-        #######################################################################
-        #  hibernate-ogm-redis
-        #######################################################################
-        -->
-        <dependencySet>
-            <useProjectArtifact>false</useProjectArtifact>
-            <outputDirectory>dist/lib/redis</outputDirectory>
-            <useTransitiveFiltering>true</useTransitiveFiltering>
-            <unpack>false</unpack>
-            <includes>
-                <include>org.hibernate.ogm:hibernate-ogm-redis</include>
+                <include>org.hibernate.ogm:hibernate-ogm-ignite</include>
             </includes>
         </dependencySet>
     </dependencySets>
@@ -135,12 +90,6 @@
         <fileSet>
             <directory>../documentation/javadoc/target/apidocs</directory>
             <outputDirectory>docs/api</outputDirectory>
-        </fileSet>
-
-        <!--  Google Guava 17.0 for lettuce/Redis -->
-        <fileSet>
-            <directory>target/lib/redis</directory>
-            <outputDirectory>dist/lib/redis</outputDirectory>
         </fileSet>
      </fileSets>
 </assembly>
