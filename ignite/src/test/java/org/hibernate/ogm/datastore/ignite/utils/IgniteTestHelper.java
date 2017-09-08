@@ -184,9 +184,6 @@ public class IgniteTestHelper implements GridDialectTestHelper {
 	}
 
 	@Override
-	public void prepareDatabase(SessionFactory arg0)
-	{
-		// TODO Auto-generated method stub
-		
+	public void prepareDatabase(SessionFactory arg0) {
 	}
 }
