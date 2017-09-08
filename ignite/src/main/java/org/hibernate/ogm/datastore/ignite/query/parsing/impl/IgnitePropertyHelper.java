@@ -49,7 +49,6 @@ public class IgnitePropertyHelper extends ParserPropertyHelper {
 	 *
 	 * @param entityType the type of the entity
 	 * @param propertyPath the path to the property without aliases
-	 * @param requiredDepth it defines until where the aliases will be considered as required aliases (see {@link IgniteAliasResolver} for more information)
 	 * @return the {@link PropertyIdentifier}
 	 */
 	public PropertyIdentifier getPropertyIdentifier(String entityType, List<String> propertyPath) {
