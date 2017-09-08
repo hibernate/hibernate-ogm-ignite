@@ -182,4 +182,11 @@ public class IgniteTestHelper implements GridDialectTestHelper {
 	public long getNumberOfAssociations(Session session) {
 		return getNumberOfAssociations( session.getSessionFactory() );
 	}
+
+	@Override
+	public void prepareDatabase(SessionFactory arg0)
+	{
+		// TODO Auto-generated method stub
+		
+	}
 }
