@@ -6,15 +6,17 @@
  */
 package org.hibernate.ogm.datastore.ignite.utils;
 
-import java.net.URL;
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
-import org.apache.ignite.IgniteCheckedException;
+import org.hibernate.ogm.datastore.ignite.IgniteConfigurationBuilder;
+
 import org.apache.ignite.IgniteSystemProperties;
 import org.apache.ignite.binary.BinaryObject;
 import org.apache.ignite.cache.CacheAtomicityMode;
@@ -28,12 +30,8 @@ import org.apache.ignite.configuration.BinaryConfiguration;
 import org.apache.ignite.configuration.CacheConfiguration;
 import org.apache.ignite.configuration.IgniteConfiguration;
 import org.apache.ignite.configuration.TransactionConfiguration;
-import org.apache.ignite.internal.IgnitionEx;
-import org.apache.ignite.internal.binary.BinaryMarshaller;
-import org.apache.ignite.logger.slf4j.Slf4jLogger;
 import org.apache.ignite.transactions.TransactionConcurrency;
 import org.apache.ignite.transactions.TransactionIsolation;
-import org.hibernate.ogm.datastore.ignite.IgniteConfigurationBuilder;
 
 /**
  * Ignite cache configuration for tests
@@ -46,37 +44,25 @@ public class IgniteTestConfigurationBuilder implements IgniteConfigurationBuilde
 	public IgniteConfiguration build() {
 		//disable check for new versions
 		System.setProperty( IgniteSystemProperties.IGNITE_UPDATE_NOTIFIER, Boolean.FALSE.toString() );
+		//disable show Ignite logo
+		System.setProperty( IgniteSystemProperties.IGNITE_NO_ASCII, Boolean.TRUE.toString() );
 
-		IgniteConfiguration config = null;
-
-		try {
-			//config = loadFromResource( "ignite-config.xml" );
-			config = createConfig();
-		}
-		catch (Exception ex) {
-			throw new RuntimeException( ex );
-		}
-
-		return config;
-	}
-
-	private IgniteConfiguration loadFromResource(String resourceName) throws IgniteCheckedException {
-		URL url = getClass().getClassLoader().getResource( resourceName );
-		return IgnitionEx.loadConfiguration( url ).get1();
+		return createConfig();
 	}
 
 	private IgniteConfiguration createConfig() {
 		IgniteConfiguration config = new IgniteConfiguration();
+		//config.setActiveOnStart( true );
 
-		config.setLocalHost( "127.0.0.1" );
-		config.setPeerClassLoadingEnabled( true );
+		//config.setLocalHost( "127.0.0.1" );
+		//config.setPeerClassLoadingEnabled( true );
 		config.setClientMode( false );
-		config.setMarshaller( new BinaryMarshaller() ) ;
+		//config.setMarshaller( new BinaryMarshaller() ) ;
 		BinaryConfiguration binaryConfiguration = new BinaryConfiguration();
 		binaryConfiguration.setCompactFooter( false );		// it is necessary only for embedded collections (@ElementCollection)
 		config.setBinaryConfiguration( binaryConfiguration );
-		config.setGridLogger( new Slf4jLogger() );
-		config.setPublicThreadPoolSize( 2 );
+		//config.setGridLogger( new Slf4jLogger() );
+		//config.setPublicThreadPoolSize( 2 );
 		TransactionConfiguration transactionConfiguration = new TransactionConfiguration();
 		transactionConfiguration.setDefaultTxConcurrency( TransactionConcurrency.PESSIMISTIC );
 		transactionConfiguration.setDefaultTxIsolation( TransactionIsolation.READ_COMMITTED );
@@ -85,7 +71,7 @@ public class IgniteTestConfigurationBuilder implements IgniteConfigurationBuilde
 		List<CacheConfiguration> cacheConfig = new ArrayList<>();
 
 // ManyToManyTest
-		cacheConfig.add(
+/*		cacheConfig.add(
 				createCacheConfig( "Car_Tire" )
 					.appendIndex( "cars_carId_maker", String.class )
 					.appendIndex( "cars_carId_model", String.class )
@@ -98,9 +84,9 @@ public class IgniteTestConfigurationBuilder implements IgniteConfigurationBuilde
 					.appendIndex( "owners_id", String.class )
 					.appendIndex( "bankAccounts_id", String.class )
 					.build()
-		);
+		); */
 // ListTest
-		cacheConfig.add(
+/*		cacheConfig.add(
 				createCacheConfig( "Race_Runners" )
 						.appendIndex( "Race_raceId_federationDepartment", Integer.class )
 						.appendIndex( "Race_raceId_federationSequence", Integer.class )
@@ -113,19 +99,19 @@ public class IgniteTestConfigurationBuilder implements IgniteConfigurationBuilde
 						.appendIndex( "playedOn_id_countryCode", String.class )
 						.appendIndex( "playedOn_id_sequenceNo", Integer.class )
 						.build()
-		);
+		); */
 // CompositeIdTest
-		cacheConfig.add(
+	/*	cacheConfig.add(
 				createCacheConfig( "Label" )
 						.withKeyType( Long.class )
 						.appendIndex( "news_author_fk", String.class )
 						.appendIndex( "news_topic_fk", String.class )
 						.build()
-		);
+		); */
 // EmbeddableExtraTest
 		cacheConfig.add( simpleCacheConfig( "Order" ) );  // Order is reserved word in SQL. Can't create QueryEntry class
 // SimpleQueriesTest
-		cacheConfig.add(
+		/*cacheConfig.add(
 				createCacheConfig( "Hypothesis" )
 						.appendField( "description", String.class )
 						.appendField( "pos", Integer.class )
@@ -145,7 +131,7 @@ public class IgniteTestConfigurationBuilder implements IgniteConfigurationBuilde
 						.appendIndex( "address_id", Long.class )
 						.appendField( "name", String.class )
 						.build()
-		);
+		); */
 // QueriesWithEmbeddedTest
 		cacheConfig.add(
 				createCacheConfig( "StoryGame" )
@@ -189,7 +175,7 @@ public class IgniteTestConfigurationBuilder implements IgniteConfigurationBuilde
 		return new TestCacheConfigBuilder( name );
 	}
 
-	private class TestCacheConfigBuilder {
+	private class TestCacheConfigBuilder implements Serializable {
 
 		private CacheConfiguration cacheConfig;
 		private QueryEntity queryEntity;
@@ -203,7 +189,6 @@ public class IgniteTestConfigurationBuilder implements IgniteConfigurationBuilde
 			cacheConfig.setAtomicityMode( CacheAtomicityMode.TRANSACTIONAL );
 			cacheConfig.setCacheMode( CacheMode.PARTITIONED );
 			cacheConfig.setWriteSynchronizationMode( CacheWriteSynchronizationMode.FULL_SYNC );
-			cacheConfig.setStartSize( 10 );
 			cacheConfig.setBackups( 0 );
 			cacheConfig.setAffinity( new RendezvousAffinityFunction( false, 2 ) );
 			cacheConfig.setCopyOnRead( false );
@@ -245,7 +230,7 @@ public class IgniteTestConfigurationBuilder implements IgniteConfigurationBuilde
 		public CacheConfiguration<String, BinaryObject> build() {
 			if ( forceQueryEntity || !indexes.isEmpty() || !queryEntity.getFields().isEmpty() ) {
 				queryEntity.setKeyType( keyTypeName != null ? keyTypeName : keyType.getName() );
-				queryEntity.setIndexes( indexes.values() );
+				queryEntity.setIndexes( new LinkedList<>( indexes.values()  ) );
 				cacheConfig.setQueryEntities( Arrays.asList( queryEntity ) );
 			}
 			if ( keyTypeName == null ) {

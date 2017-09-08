@@ -10,22 +10,19 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.IdentityHashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import javax.cache.Cache;
 
-import org.apache.ignite.Ignite;
-import org.apache.ignite.IgniteCache;
-import org.apache.ignite.Ignition;
-import org.apache.ignite.binary.BinaryObject;
-import org.apache.ignite.cache.CachePeekMode;
-import org.apache.ignite.cache.query.SqlFieldsQuery;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.engine.spi.SessionFactoryImplementor;
 import org.hibernate.ogm.datastore.document.options.AssociationStorageType;
 import org.hibernate.ogm.datastore.ignite.IgniteDialect;
+import org.hibernate.ogm.datastore.ignite.IgniteProperties;
 import org.hibernate.ogm.datastore.ignite.impl.IgniteDatastoreProvider;
 import org.hibernate.ogm.datastore.ignite.impl.IgniteTupleSnapshot;
 import org.hibernate.ogm.datastore.ignite.util.StringHelper;
@@ -42,6 +39,15 @@ import org.hibernate.ogm.persister.impl.OgmEntityPersister;
 import org.hibernate.ogm.utils.GridDialectTestHelper;
 import org.hibernate.persister.collection.CollectionPersister;
 import org.hibernate.persister.entity.EntityPersister;
+
+import org.apache.ignite.Ignite;
+import org.apache.ignite.IgniteCache;
+import org.apache.ignite.Ignition;
+import org.apache.ignite.binary.BinaryObject;
+import org.apache.ignite.cache.CachePeekMode;
+import org.apache.ignite.cache.query.SqlFieldsQuery;
+import org.apache.ignite.transactions.TransactionConcurrency;
+import org.apache.ignite.transactions.TransactionIsolation;
 
 /**
  * @author Dmitriy Kozlov
@@ -71,8 +77,8 @@ public class IgniteTestHelper implements GridDialectTestHelper {
 			if ( associationKeyMetadata.getAssociationKind() == AssociationKind.ASSOCIATION ) {
 				IgniteCache<Object, BinaryObject> associationCache = getAssociationCache( sessionFactory, associationKeyMetadata );
 				StringBuilder query = new StringBuilder( "SELECT " )
-											.append( StringHelper.realColumnName( associationKeyMetadata.getColumnNames()[0] ) )
-											.append( " FROM " ).append( associationKeyMetadata.getTable() );
+						.append( StringHelper.realColumnName( associationKeyMetadata.getColumnNames()[0] ) )
+						.append( " FROM " ).append( associationKeyMetadata.getTable() );
 				SqlFieldsQuery sqlQuery = datastoreProvider.createSqlFieldsQueryWithLog( query.toString(), null );
 				Iterable<List<?>> queryResult = associationCache.query( sqlQuery );
 				Set<Object> uniqs = new HashSet<>();
@@ -81,6 +87,11 @@ public class IgniteTestHelper implements GridDialectTestHelper {
 					if ( value != null ) {
 						uniqs.add( value );
 					}
+				}
+
+				for ( Iterator<Cache.Entry<Object,BinaryObject>> it =  associationCache.iterator(); it.hasNext(); ) {
+					Cache.Entry<Object,BinaryObject> entry = it.next();
+					uniqs.add( entry.getValue().field( StringHelper.realColumnName( associationKeyMetadata.getColumnNames()[0] ) ) );
 				}
 				associationCount += uniqs.size();
 			}
@@ -131,18 +142,13 @@ public class IgniteTestHelper implements GridDialectTestHelper {
 	@Override
 	public void dropSchemaAndDatabase(SessionFactory sessionFactory) {
 		if ( Ignition.allGrids().size() > 1 ) { // some tests doesn't stop DatastareProvider
-			String currentGridName = getProvider( sessionFactory ).getGridName();
+			String currentGridName = getProvider( sessionFactory ).getInstanceName();
 			for ( Ignite grid : Ignition.allGrids() ) {
 				if ( !Objects.equals( currentGridName, grid.name() ) ) {
 					grid.close();
 				}
 			}
 		}
-	}
-
-	@Override
-	public Map<String, String> getAdditionalConfigurationProperties() {
-		return Collections.emptyMap();
 	}
 
 	@Override
@@ -160,7 +166,7 @@ public class IgniteTestHelper implements GridDialectTestHelper {
 		return castProvider.getAssociationCache( associationKeyMetadata );
 	}
 
-	private static IgniteDatastoreProvider getProvider(SessionFactory sessionFactory) {
+	public static IgniteDatastoreProvider getProvider(SessionFactory sessionFactory) {
 		DatastoreProvider provider = ( (SessionFactoryImplementor) sessionFactory ).getServiceRegistry().getService( DatastoreProvider.class );
 		if ( !( provider instanceof IgniteDatastoreProvider ) ) {
 			throw new RuntimeException( "Not testing with Ignite, cannot extract underlying cache" );
@@ -181,6 +187,14 @@ public class IgniteTestHelper implements GridDialectTestHelper {
 	@Override
 	public long getNumberOfAssociations(Session session) {
 		return getNumberOfAssociations( session.getSessionFactory() );
+	}
+
+	@Override
+	public Map<String, String> getAdditionalConfigurationProperties() {
+		Map<String, String> map = new HashMap<>(  );
+		map.put( IgniteProperties.IGNITE_TRANSACTION_CONCURRENCY, TransactionConcurrency.OPTIMISTIC.name() );
+		map.put( IgniteProperties.IGNITE_TRANSACTION_ISOLATION, TransactionIsolation.REPEATABLE_READ.name() );
+		return map;
 	}
 
 	@Override
