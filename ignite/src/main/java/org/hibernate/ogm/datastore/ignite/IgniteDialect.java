@@ -146,13 +146,12 @@ public class IgniteDialect extends BaseGridDialect implements GridDialect, Query
 
 		Object keyObject = null;
 		BinaryObjectBuilder builder = null;
+		IgniteTupleSnapshot tupleSnapshot = (IgniteTupleSnapshot) tuple.getSnapshot();
+		keyObject = tupleSnapshot.getCacheKey();
 		if ( tuple.getSnapshotType() == SnapshotType.UPDATE ) {
-			IgniteTupleSnapshot tupleSnapshot = (IgniteTupleSnapshot) tuple.getSnapshot();
-			keyObject = tupleSnapshot.getCacheKey();
 			builder = provider.createBinaryObjectBuilder( tupleSnapshot.getCacheValue() );
 		}
 		else {
-			keyObject = provider.createKeyObject( key );
 			builder = provider.createBinaryObjectBuilder( provider.getEntityTypeName( key.getMetadata().getTable() ) );
 		}
 		for ( String columnName : tuple.getColumnNames() ) {
@@ -169,6 +168,7 @@ public class IgniteDialect extends BaseGridDialect implements GridDialect, Query
 		}
 		BinaryObject valueObject = builder.build();
 		entityCache.put( keyObject, valueObject );
+		tuplePointer.setTuple( new Tuple( new IgniteTupleSnapshot( keyObject, valueObject, key.getMetadata() ), SnapshotType.UPDATE ));
 	}
 
 	@Override

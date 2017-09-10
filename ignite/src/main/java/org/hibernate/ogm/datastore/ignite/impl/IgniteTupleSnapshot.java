@@ -27,8 +27,6 @@ public class IgniteTupleSnapshot implements TupleSnapshot {
 	private final boolean isSimpleId;
 	private final Set<String> columnNames;
 
-//	private Set<String> embeddedCollectionsColumns;
-
 	public IgniteTupleSnapshot(Object id, BinaryObject binaryObject, EntityKeyMetadata keyMetadata) {
 		this.id = id;
 		this.binaryObject = binaryObject;
@@ -87,12 +85,4 @@ public class IgniteTupleSnapshot implements TupleSnapshot {
 	public BinaryObject getCacheValue() {
 		return binaryObject;
 	}
-
-//	public void addEmbeddedCollectionColumn(String columnName) {
-//		if ( embeddedCollectionsColumns == null ) {
-//			embeddedCollectionsColumns = new HashSet<>();
-//		}
-//		embeddedCollectionsColumns.add( columnName );
-//		columnNames.add( columnName );
-//	}
 }
