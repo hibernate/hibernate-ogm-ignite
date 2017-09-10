@@ -168,7 +168,7 @@ public class IgniteDialect extends BaseGridDialect implements GridDialect, Query
 		}
 		BinaryObject valueObject = builder.build();
 		entityCache.put( keyObject, valueObject );
-		tuplePointer.setTuple( new Tuple( new IgniteTupleSnapshot( keyObject, valueObject, key.getMetadata() ), SnapshotType.UPDATE ));
+		tuplePointer.setTuple( new Tuple( new IgniteTupleSnapshot( keyObject, valueObject, key.getMetadata() ), SnapshotType.UPDATE ) );
 	}
 
 	@Override
