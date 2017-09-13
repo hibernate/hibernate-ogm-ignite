@@ -76,14 +76,23 @@ public class IgniteQueryRendererDelegate extends SingleEntityQueryRendererDelega
 	}
 
 	private void select(StringBuilder queryBuilder) {
-		queryBuilder.append( "SELECT _KEY, _VAL " );
+		String tableAlias = propertyHelper.findAliasForType( targetTypeName );
+		if ( tableAlias.trim().length() > 0 ) {
+			tableAlias = tableAlias + ".";
+		}
+		queryBuilder.append( String.format( "SELECT %s_KEY, %s_VAL ", tableAlias, tableAlias ) );
 	}
 
 	private void from(StringBuilder queryBuilder) {
 		String tableAlias = propertyHelper.findAliasForType( targetTypeName );
-		OgmEntityPersister persister = (OgmEntityPersister) ( sessionFactory ).getEntityPersister( targetType.getName() );
-		String tableName = propertyHelper.getKeyMetaData( targetType.getName() ).getTable();
+		String tableName = getTableName();
 		queryBuilder.append( " FROM " ).append( tableName ).append( ' ' ).append( tableAlias ).append( ' ' );
+	}
+
+	private String getTableName() {
+		String tableAlias = propertyHelper.findAliasForType( targetTypeName );
+		OgmEntityPersister persister = (OgmEntityPersister) ( sessionFactory ).getEntityPersister( targetType.getName() );
+		return propertyHelper.getKeyMetaData( targetType.getName() ).getTable();
 	}
 
 	@Override
@@ -95,7 +104,7 @@ public class IgniteQueryRendererDelegate extends SingleEntityQueryRendererDelega
 		orderBy( queryBuilder );
 
 		boolean hasScalar = false; // no projections for now
-		IgniteQueryDescriptor queryDescriptor = new IgniteQueryDescriptor( queryBuilder.toString(), indexedParameters, hasScalar );
+		IgniteQueryDescriptor queryDescriptor = new IgniteQueryDescriptor( queryBuilder.toString(), getTableName(), indexedParameters, hasScalar );
 
 		return new IgniteQueryParsingResult( queryDescriptor, ENTITY_COLUMN_NAMES );
 	}
