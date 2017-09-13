@@ -6,11 +6,7 @@
  */
 package org.hibernate.ogm.datastore.ignite.transaction.impl;
 
-import org.apache.ignite.Ignite;
-import org.apache.ignite.IgniteTransactions;
 import org.hibernate.ogm.datastore.ignite.impl.IgniteDatastoreProvider;
-import org.hibernate.ogm.datastore.ignite.logging.impl.Log;
-import org.hibernate.ogm.datastore.ignite.logging.impl.LoggerFactory;
 import org.hibernate.ogm.transaction.impl.ForwardingTransactionCoordinator;
 import org.hibernate.resource.transaction.TransactionCoordinator;
 
@@ -22,11 +18,11 @@ import org.hibernate.resource.transaction.TransactionCoordinator;
  */
 public class IgniteJtaTransactionCoordinator extends ForwardingTransactionCoordinator {
 
-	private static Log log = LoggerFactory.getLogger();
 	private final IgniteDatastoreProvider datastoreProvider;
 
 	/**
 	 * Constructor
+	 *
 	 * @param delegate transaction coordinator delegate
 	 * @param datastoreProvider Ignite Datastore provider
 	 */
@@ -37,41 +33,11 @@ public class IgniteJtaTransactionCoordinator extends ForwardingTransactionCoordi
 
 	@Override
 	public void explicitJoin() {
-		super.explicitJoin();
-		join();
+		throw new UnsupportedOperationException( "Emulation of JTA is not supported!" );
 	}
 
 	@Override
 	public void pulse() {
-		super.pulse();
-		join();
+		throw new UnsupportedOperationException( "Emulation of JTA is not supported!" );
 	}
-
-	private void join() {
-		Ignite ignite = datastoreProvider.getCacheManager();
-		IgniteTransactions igniteTransactions = ignite.transactions();
-
-		/*
-		 * if ( currentOrientDBTransaction == null && delegate.isActive() ) { log.debugf(
-		 * "begin transaction for database %s", database.getName() ); database.begin(); currentOrientDBTransaction =
-		 * database.getTransaction(); delegate.getLocalSynchronizations().registerSynchronization( new
-		 * OrientDBSynchronization() ); }
-		 */
-
-	}
-	/*
-	 * private void success() { if ( currentOrientDBTransaction != null ) { log.debugf(
-	 * "commit  transaction N %d for database %s", currentOrientDBTransaction.getId(),
-	 * currentOrientDBTransaction.getDatabase().getName() ); currentOrientDBTransaction.commit();
-	 * currentOrientDBTransaction = null; } } private void failure() { if ( currentOrientDBTransaction != null ) {
-	 * log.debugf( "rollback  transaction N %d for database %s", currentOrientDBTransaction.getId(),
-	 * currentOrientDBTransaction.getDatabase().getName() ); currentOrientDBTransaction.rollback();
-	 * currentOrientDBTransaction = null; } } private class OrientDBSynchronization implements Synchronization {
-	 * @Override public void beforeCompletion() { TransactionStatus status =
-	 * delegate.getTransactionDriverControl().getStatus(); if ( status == TransactionStatus.MARKED_ROLLBACK ) {
-	 * failure(); } else { success(); } }
-	 * @Override public void afterCompletion(int status) { if ( currentOrientDBTransaction != null ) { if ( status !=
-	 * Status.STATUS_COMMITTED ) { failure(); } else { success(); } } } }
-	 */
-
 }

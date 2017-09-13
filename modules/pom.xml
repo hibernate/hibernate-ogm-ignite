@@ -9,7 +9,7 @@
     <parent>
         <groupId>org.hibernate.ogm</groupId>
         <artifactId>hibernate-ogm-ignite-parent</artifactId>
-        <version>5.2.0.Alpha1</version>
+        <version>5.2.0-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
@@ -29,18 +29,6 @@
         <hibernate.ogm.redis.module.slot>${hibernate.ogm.module.slot}</hibernate.ogm.redis.module.slot> -->
         <hibernate.hql.module.slot>${hibernateHqlParserVersion}</hibernate.hql.module.slot>
     </properties>
-
-    <dependencyManagement>
-        <dependencies>
-            <!-- Overriding the version used for tests in OGM (managed in the parent) with the one used by the C* driver -->
-            <dependency>
-                <groupId>com.google.guava</groupId>
-                <artifactId>guava</artifactId>
-                <optional>true</optional>
-                <version>${cassandraGuavaVersion}</version>
-            </dependency>
-        </dependencies>
-    </dependencyManagement>
 
     <dependencies>
         <dependency>

@@ -11,7 +11,7 @@
     <parent>
         <groupId>org.hibernate.ogm</groupId>
         <artifactId>hibernate-ogm-bom</artifactId>
-        <version>5.2.0.Alpha1</version>
+        <version>5.2.0-SNAPSHOT</version>
     </parent>
 
     <artifactId>hibernate-ogm-ignite-parent</artifactId>
@@ -54,7 +54,7 @@
         <asciidoctorj-pdf.version>1.5.0-alpha.11</asciidoctorj-pdf.version>
 
         <!--Apache Ignite -->
-        <ignite.version>2.1.0</ignite.version>
+        <igniteVersion>2.1.0</igniteVersion>
         <igniteCommonsLang3Version>3.5</igniteCommonsLang3Version>
     </properties>
 

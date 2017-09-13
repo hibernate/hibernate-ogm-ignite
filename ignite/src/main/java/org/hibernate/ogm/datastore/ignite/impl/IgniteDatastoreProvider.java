@@ -41,7 +41,6 @@ import org.hibernate.ogm.query.spi.QueryParserService;
 import org.hibernate.ogm.util.configurationreader.spi.ConfigurationPropertyReader;
 import org.hibernate.resource.transaction.TransactionCoordinatorBuilder;
 import org.hibernate.service.spi.Configurable;
-import org.hibernate.service.spi.ServiceException;
 import org.hibernate.service.spi.ServiceRegistryAwareService;
 import org.hibernate.service.spi.ServiceRegistryImplementor;
 import org.hibernate.service.spi.Startable;
@@ -75,7 +74,7 @@ import org.apache.ignite.thread.IgniteThread;
  * @author Dmitriy Kozlov
  */
 public class IgniteDatastoreProvider extends BaseDatastoreProvider
-implements Startable, Stoppable, ServiceRegistryAwareService, Configurable {
+		implements Startable, Stoppable, ServiceRegistryAwareService, Configurable {
 
 	private static final long serialVersionUID = 2278253954737494852L;
 	private static final Log log = LoggerFactory.getLogger();
@@ -144,8 +143,8 @@ implements Startable, Stoppable, ServiceRegistryAwareService, Configurable {
 
 	public IgniteCache<Object, BinaryObject> getAssociationCache(AssociationKeyMetadata keyMetadata) {
 		return keyMetadata.getAssociationKind() == AssociationKind.EMBEDDED_COLLECTION
-				? getEntityCache( keyMetadata.getEntityKeyMetadata() )
-						: getEntityCache( keyMetadata.getTable() );
+					? getEntityCache( keyMetadata.getEntityKeyMetadata() )
+					: getEntityCache( keyMetadata.getTable() );
 	}
 
 	public IgniteCache<String, Long> getIdSourceCache(IdSourceKeyMetadata keyMetadata) {
@@ -206,24 +205,18 @@ implements Startable, Stoppable, ServiceRegistryAwareService, Configurable {
 								.required().getValue();
 						log.infof( "workDirectory: %s",workDirectory  );
 						conf.setWorkDirectory( workDirectory );
-
-
 						conf.setPersistentStoreConfiguration( persistentStoreConfiguration );
-						conf.setActiveOnStart( true );
 					}
-
 
 					cacheManager = (IgniteEx) Ignition.start( conf );
 					log.info( "== New instance of Ignite started ==" );
 					if ( usePersistence ) {
+						//call "active(false)" throws exception. it is question for Ignite team
 						cacheManager.active( true );
 					}
 					stopOnExit = true;
 				}
 			}
-		}
-		catch (ServiceException ex) {
-			throw ex;
 		}
 		catch (Exception ex) {
 			throw log.unableToStartDatastoreProvider( ex );
@@ -255,8 +248,8 @@ implements Startable, Stoppable, ServiceRegistryAwareService, Configurable {
 							"Neither " + IgniteProperties.CONFIGURATION_RESOURCE_NAME
 							+ " nor " + IgniteProperties.CONFIGURATION_CLASS_NAME
 							+ " properties is not set"
-							)
-					);
+					)
+			);
 		}
 		if ( !( jtaPlatform instanceof NoJtaPlatform ) ) {
 			conf.getTransactionConfiguration().setTxManagerFactory( new IgniteTransactionManagerFactory( jtaPlatform ) );
@@ -476,9 +469,9 @@ implements Startable, Stoppable, ServiceRegistryAwareService, Configurable {
 					}
 				}
 				if ( result == null ) { */
-					//if nothing found we use id field name
-					result = StringHelper.stringBeforePoint( keyMetadata.getColumnNames()[0] );
-					result = StringUtils.capitalize( result );
+				//if nothing found we use id field name
+				result = StringHelper.stringBeforePoint( keyMetadata.getColumnNames()[0] );
+				result = StringUtils.capitalize( result );
 				//}
 			}
 			compositeIdTypes.put( keyMetadata.getTable(), result );
@@ -506,10 +499,6 @@ implements Startable, Stoppable, ServiceRegistryAwareService, Configurable {
 		return StringHelper.stringBeforePoint( entity ) ;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.hibernate.ogm.datastore.spi.BaseDatastoreProvider#allowsTransactionEmulation()
-	 */
 	@Override
 	public boolean allowsTransactionEmulation() {
 		boolean allowsTransactionEmulation = propertyReader.property( IgniteProperties.IGNITE_ALLOWS_TRANSACTION_EMULATION, Boolean.class )
@@ -517,12 +506,6 @@ implements Startable, Stoppable, ServiceRegistryAwareService, Configurable {
 		return allowsTransactionEmulation;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see
-	 * org.hibernate.ogm.datastore.spi.BaseDatastoreProvider#getTransactionCoordinatorBuilder(org.hibernate.resource.
-	 * transaction.TransactionCoordinatorBuilder)
-	 */
 	@Override
 	public TransactionCoordinatorBuilder getTransactionCoordinatorBuilder(TransactionCoordinatorBuilder coordinatorBuilder) {
 		return new IgniteTransactionCoordinatorBuilder( coordinatorBuilder, this );

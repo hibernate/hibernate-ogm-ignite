@@ -26,7 +26,6 @@ public class IgniteTransactionCoordinatorBuilder implements TransactionCoordinat
 	 */
 	public IgniteTransactionCoordinatorBuilder(
 			TransactionCoordinatorBuilder delegate, IgniteDatastoreProvider datastoreProvider) {
-		super();
 		this.delegate = delegate;
 		this.datastoreProvider = datastoreProvider;
 	}
@@ -42,8 +41,6 @@ public class IgniteTransactionCoordinatorBuilder implements TransactionCoordinat
 			throw new UnsupportedOperationException( "Not supported yet" );
 		}
 		else {
-
-
 			return new IgniteLocalTransactionCoordinator( coordinator, datastoreProvider );
 		}
 	}

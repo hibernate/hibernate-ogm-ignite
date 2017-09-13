@@ -27,25 +27,23 @@ public class IgniteGridTypeMapper {
 			return IgniteBigDecimalType.INSTANCE;
 		}
 
-		else if ( type == StandardBasicTypes.BIG_INTEGER ) {
+		if ( type == StandardBasicTypes.BIG_INTEGER ) {
 			return IgniteBigIntegerType.INSTANCE;
 		}
 
-		else if ( type == StandardBasicTypes.CALENDAR ) {
+		if ( type == StandardBasicTypes.CALENDAR ) {
 			return IgniteCalendarType.INSTANCE;
 		}
 
-		else if ( type == StandardBasicTypes.CALENDAR_DATE ) {
+		if ( type == StandardBasicTypes.CALENDAR_DATE ) {
 			return IgniteCalendarType.INSTANCE;
 		}
-		else if ( type == StandardBasicTypes.SERIALIZABLE ) {
-			//@todo write test for it
+		if ( type == StandardBasicTypes.SERIALIZABLE ) {
 			if ( type instanceof SerializableType ) {
 				SerializableType<?> exposedType = (SerializableType<?>) type;
 				return new SerializableAsByteArrayType<>( exposedType.getJavaTypeDescriptor() );
 			}
 		}
-
 		return null;
 	}
 
