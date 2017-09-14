@@ -6,7 +6,9 @@
  */
 package org.hibernate.ogm.datastore.ignite.type.impl;
 
+import org.hibernate.ogm.type.impl.SerializableAsByteArrayType;
 import org.hibernate.ogm.type.spi.GridType;
+import org.hibernate.type.SerializableType;
 import org.hibernate.type.StandardBasicTypes;
 import org.hibernate.type.Type;
 
@@ -36,7 +38,12 @@ public class IgniteGridTypeMapper {
 		if ( type == StandardBasicTypes.CALENDAR_DATE ) {
 			return IgniteCalendarType.INSTANCE;
 		}
-
+		if ( type == StandardBasicTypes.SERIALIZABLE ) {
+			if ( type instanceof SerializableType ) {
+				SerializableType<?> exposedType = (SerializableType<?>) type;
+				return new SerializableAsByteArrayType<>( exposedType.getJavaTypeDescriptor() );
+			}
+		}
 		return null;
 	}
 

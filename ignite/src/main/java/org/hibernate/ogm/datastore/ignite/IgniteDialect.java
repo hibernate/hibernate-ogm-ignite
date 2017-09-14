@@ -146,12 +146,13 @@ public class IgniteDialect extends BaseGridDialect implements GridDialect, Query
 
 		Object keyObject = null;
 		BinaryObjectBuilder builder = null;
-		IgniteTupleSnapshot tupleSnapshot = (IgniteTupleSnapshot) tuple.getSnapshot();
-		keyObject = tupleSnapshot.getCacheKey();
 		if ( tuple.getSnapshotType() == SnapshotType.UPDATE ) {
-			builder = provider.createBinaryObjectBuilder( tupleSnapshot.getCacheValue() );
+			IgniteTupleSnapshot tupleSnapshot = (IgniteTupleSnapshot) tuple.getSnapshot();
+			keyObject = tupleSnapshot.getCacheKey();
+			builder = provider.createBinaryObjectBuilder( entityCache.get( keyObject ) );
 		}
 		else {
+			keyObject = provider.createKeyObject( key );
 			builder = provider.createBinaryObjectBuilder( provider.getEntityTypeName( key.getMetadata().getTable() ) );
 		}
 		for ( String columnName : tuple.getColumnNames() ) {
@@ -275,74 +276,74 @@ public class IgniteDialect extends BaseGridDialect implements GridDialect, Query
 				Tuple previousStateTuple = snapshot.get( op.getKey() );
 				Tuple currentStateTuple = op.getValue();
 				Object previousId = previousStateTuple != null
-										? ( (IgniteAssociationRowSnapshot) previousStateTuple.getSnapshot() ).getCacheKey()
-										: null;
-				if ( op.getType() == AssociationOperationType.CLEAR
-						|| op.getType() == AssociationOperationType.REMOVE && !thirdTableAssociation ) {
-					BinaryObject clearBo = associationCache.get( previousId );
-					if ( clearBo != null ) {
-						BinaryObjectBuilder clearBoBuilder = provider.createBinaryObjectBuilder( clearBo );
-						for ( String columnName : key.getColumnNames() ) {
-							clearBoBuilder.removeField( columnName );
-						}
-						for ( String columnName : key.getMetadata().getRowKeyIndexColumnNames() ) {
-							clearBoBuilder.removeField( columnName );
-						}
-						changedObjects.put( previousId, clearBoBuilder.build() );
-					}
-				}
-				else if ( op.getType() == AssociationOperationType.PUT ) {
-					Object currentId = null;
-					if ( currentStateTuple.getSnapshot().isEmpty() ) {
-						currentId = provider.createAssociationKeyObject( op.getKey(), key.getMetadata() );
-					}
-					else {
-						currentId = ( (IgniteAssociationRowSnapshot) currentStateTuple.getSnapshot() ).getCacheKey();
-					}
-					BinaryObject putBo = previousId != null ? associationCache.get( previousId ) : null;
-					BinaryObjectBuilder putBoBuilder = null;
-					if ( putBo != null ) {
-						boolean hasChanges = false;
-						for ( String columnName : currentStateTuple.getColumnNames() ) {
-							if ( key.getMetadata().getAssociatedEntityKeyMetadata().getEntityKeyMetadata().isKeyColumn( columnName ) ) {
-								continue;
-							}
-							hasChanges = Objects.equals( currentStateTuple.get( columnName ), putBo.field( columnName ) );
-							if ( hasChanges ) {
-								break;
+						? ( (IgniteAssociationRowSnapshot) previousStateTuple.getSnapshot() ).getCacheKey()
+								: null;
+						if ( op.getType() == AssociationOperationType.CLEAR
+								|| op.getType() == AssociationOperationType.REMOVE && !thirdTableAssociation ) {
+							BinaryObject clearBo = associationCache.get( previousId );
+							if ( clearBo != null ) {
+								BinaryObjectBuilder clearBoBuilder = provider.createBinaryObjectBuilder( clearBo );
+								for ( String columnName : key.getColumnNames() ) {
+									clearBoBuilder.removeField( columnName );
+								}
+								for ( String columnName : key.getMetadata().getRowKeyIndexColumnNames() ) {
+									clearBoBuilder.removeField( columnName );
+								}
+								changedObjects.put( previousId, clearBoBuilder.build() );
 							}
 						}
-						if ( !hasChanges ) { //vk: all changes already set. nothing to update
-							continue;
+						else if ( op.getType() == AssociationOperationType.PUT ) {
+							Object currentId = null;
+							if ( currentStateTuple.getSnapshot().isEmpty() ) {
+								currentId = provider.createAssociationKeyObject( op.getKey(), key.getMetadata() );
+							}
+							else {
+								currentId = ( (IgniteAssociationRowSnapshot) currentStateTuple.getSnapshot() ).getCacheKey();
+							}
+							BinaryObject putBo = previousId != null ? associationCache.get( previousId ) : null;
+							BinaryObjectBuilder putBoBuilder = null;
+							if ( putBo != null ) {
+								boolean hasChanges = false;
+								for ( String columnName : currentStateTuple.getColumnNames() ) {
+									if ( key.getMetadata().getAssociatedEntityKeyMetadata().getEntityKeyMetadata().isKeyColumn( columnName ) ) {
+										continue;
+									}
+									hasChanges = Objects.equals( currentStateTuple.get( columnName ), putBo.field( columnName ) );
+									if ( hasChanges ) {
+										break;
+									}
+								}
+								if ( !hasChanges ) { //vk: all changes already set. nothing to update
+									continue;
+								}
+								putBoBuilder = provider.createBinaryObjectBuilder( putBo );
+							}
+							else {
+								putBoBuilder = provider.createBinaryObjectBuilder( provider.getEntityTypeName( key.getMetadata().getTable() ) );
+							}
+							for ( String columnName : currentStateTuple.getColumnNames() ) {
+								if ( key.getMetadata().getAssociatedEntityKeyMetadata().getEntityKeyMetadata().isKeyColumn( columnName ) ) {
+									continue;
+								}
+								Object value = currentStateTuple.get( columnName );
+								if ( value != null ) {
+									putBoBuilder.setField( StringHelper.realColumnName( columnName ), value );
+								}
+								else {
+									putBoBuilder.removeField( columnName );
+								}
+							}
+							if ( previousId != null && !previousId.equals( currentId ) ) {
+								removedObjects.add( previousId );
+							}
+							changedObjects.put( currentId, putBoBuilder.build() );
 						}
-						putBoBuilder = provider.createBinaryObjectBuilder( putBo );
-					}
-					else {
-						putBoBuilder = provider.createBinaryObjectBuilder( provider.getEntityTypeName( key.getMetadata().getTable() ) );
-					}
-					for ( String columnName : currentStateTuple.getColumnNames() ) {
-						if ( key.getMetadata().getAssociatedEntityKeyMetadata().getEntityKeyMetadata().isKeyColumn( columnName ) ) {
-							continue;
-						}
-						Object value = currentStateTuple.get( columnName );
-						if ( value != null ) {
-							putBoBuilder.setField( StringHelper.realColumnName( columnName ), value );
+						else if ( op.getType() == AssociationOperationType.REMOVE ) {
+							removedObjects.add( previousId );
 						}
 						else {
-							putBoBuilder.removeField( columnName );
+							throw new UnsupportedOperationException( "AssociationOperation not supported: " + op.getType() );
 						}
-					}
-					if ( previousId != null && !previousId.equals( currentId ) ) {
-						removedObjects.add( previousId );
-					}
-					changedObjects.put( currentId, putBoBuilder.build() );
-				}
-				else if ( op.getType() == AssociationOperationType.REMOVE ) {
-					removedObjects.add( previousId );
-				}
-				else {
-					throw new UnsupportedOperationException( "AssociationOperation not supported: " + op.getType() );
-				}
 			}
 
 			if ( !changedObjects.isEmpty() ) {
@@ -376,7 +377,7 @@ public class IgniteDialect extends BaseGridDialect implements GridDialect, Query
 						Tuple currentStateTuple = op.getValue();
 						BinaryObjectBuilder putBoBuilder = provider.createBinaryObjectBuilder(
 								provider.getEntityTypeName( itemMetadata.getTable() )
-						);
+								);
 						for ( String columnName : op.getKey().getColumnNames() ) {
 							Object value = op.getKey().getColumnValue( columnName );
 							if ( value != null ) {
@@ -412,6 +413,19 @@ public class IgniteDialect extends BaseGridDialect implements GridDialect, Query
 			binaryObject = binaryObjectBuilder.build();
 			associationCache.put( id, binaryObject );
 		}
+	}
+
+	/**
+	 * Retrieve entity that contains the association, do not enhance with entity key
+	 */
+	protected TuplePointer getOwnerEntityTuplePointer(AssociationKey key, AssociationContext associationContext) {
+		TuplePointer tuplePointer = associationContext.getEntityTuplePointer();
+
+		if ( tuplePointer.getTuple() == null ) {
+			tuplePointer.setTuple( getTuple( key.getEntityKey(), associationContext ) );
+		}
+
+		return tuplePointer;
 	}
 
 	private int findIndexByRowKey(List<BinaryObject> objects, RowKey rowKey, String indexColumnName) {
@@ -450,9 +464,9 @@ public class IgniteDialect extends BaseGridDialect implements GridDialect, Query
 		String indexColumnName = null;
 		if ( associationMetadata.getAssociationType() == AssociationType.SET
 				|| associationMetadata.getAssociationType() == AssociationType.BAG ) {
-//			String cols[] =  associationMetadata.getColumnsWithoutKeyColumns(
-//									Arrays.asList( associationMetadata.getRowKeyColumnNames() )
-//							);
+			//			String cols[] =  associationMetadata.getColumnsWithoutKeyColumns(
+			//									Arrays.asList( associationMetadata.getRowKeyColumnNames() )
+			//							);
 		}
 		else {
 			if ( associationMetadata.getRowKeyIndexColumnNames().length > 1 ) {
@@ -477,8 +491,6 @@ public class IgniteDialect extends BaseGridDialect implements GridDialect, Query
 			Boolean isCollocated = associationContext.getAssociationTypeContext().getOptionsContext().getUnique( CollocatedAssociationOption.class );
 			if ( isCollocated ) {
 				throw new NotYetImplementedException();
-//				hintsBuilder.setAffinityRun( true );
-//				hintsBuilder.setAffinityKey( provider.createKeyObject( key ) );
 			}
 			QueryHints hints = hintsBuilder.build();
 
@@ -591,31 +603,22 @@ public class IgniteDialect extends BaseGridDialect implements GridDialect, Query
 		if ( backendQuery.getSingleEntityMetadataInformationOrNull() != null ) {
 			cache = provider.getEntityCache( backendQuery.getSingleEntityMetadataInformationOrNull().getEntityKeyMetadata() );
 		}
-//		else if ( backendQuery.getQuery().getQuerySpaces().size() > 0 ) {
-//			cache = provider.getEntityCache( backendQuery.getQuery().getQuerySpaces().iterator().next() );
-//		}
 		else {
 			throw new UnsupportedOperationException( "Not implemented. Can't find cache name" );
 		}
+		log.debugf( "execute query: %s", backendQuery.getQuery().getSql() );
 
-		QueryHints hints = ( new QueryHints.Builder( null /* queryParameters.getQueryHints() */ ) ).build();
+		QueryHints hints = ( new QueryHints.Builder( queryParameters.getQueryHints() ) ).build();
 		SqlFieldsQuery sqlQuery = provider.createSqlFieldsQueryWithLog(
 				backendQuery.getQuery().getSql(),
 				hints,
 				backendQuery.getQuery().getIndexedParameters() != null ? backendQuery.getQuery().getIndexedParameters().toArray() : null
-		);
+				);
 		Iterable<List<?>> result = executeWithHints( cache, sqlQuery, hints );
 
 		if ( backendQuery.getSingleEntityMetadataInformationOrNull() != null ) {
-			return new IgnitePortableFromProjectionResultCursor(
-							result,
-							queryParameters.getRowSelection(),
-							backendQuery.getSingleEntityMetadataInformationOrNull().getEntityKeyMetadata()
-						);
-		}
-		else if ( backendQuery.getQuery().isHasScalar() ) {
-			throw new NotYetImplementedException();
-//			return new IgniteProjectionResultCursor( result, backendQuery.getQuery().getCustomQueryReturns(), queryParameters.getRowSelection() );
+			return new IgnitePortableFromProjectionResultCursor( result, queryParameters.getRowSelection(),
+					backendQuery.getSingleEntityMetadataInformationOrNull().getEntityKeyMetadata() );
 		}
 		else {
 			throw new UnsupportedOperationException( "Not implemented yet" );

@@ -114,7 +114,6 @@ public class IgniteTestHelper implements GridDialectTestHelper {
 		Map<String, Object> result = new HashMap<>();
 		BinaryObject po = cache.get( cacheKey );
 
-		IgniteDialect igniteDialect = (IgniteDialect) sessionFactory.getServiceRegistry().getService( GridDialect.class );
 		TupleSnapshot snapshot = new IgniteTupleSnapshot( cacheKey, po, key.getMetadata() );
 		for ( String fieldName : snapshot.getColumnNames() ) {
 			result.put( fieldName, snapshot.get( fieldName ) );
@@ -131,7 +130,7 @@ public class IgniteTestHelper implements GridDialectTestHelper {
 	@Override
 	public void dropSchemaAndDatabase(SessionFactory sessionFactory) {
 		if ( Ignition.allGrids().size() > 1 ) { // some tests doesn't stop DatastareProvider
-			String currentGridName = getProvider( sessionFactory ).getGridName();
+			String currentGridName = getProvider( sessionFactory ).getInstanceName();
 			for ( Ignite grid : Ignition.allGrids() ) {
 				if ( !Objects.equals( currentGridName, grid.name() ) ) {
 					grid.close();

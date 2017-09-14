@@ -96,7 +96,7 @@ public class QueryHints {
 		/**
 		 * Sets whether this query should be executed on local node only.
 		 *
-		 * @param local
+		 * @param local true if query is local
 		 * @return {@code this} for chaining.
 		 */
 		public Builder setLocal(boolean local) {
@@ -120,6 +120,11 @@ public class QueryHints {
 			return this;
 		}
 
+		/**
+		 * get affinityKey for affinity call
+		 *
+		 * @return
+		 */
 		public Object getAffinityKey() {
 			return affinityKey;
 		}
@@ -133,6 +138,11 @@ public class QueryHints {
 			return this;
 		}
 
+		/**
+		 * build object with hints
+		 *
+		 * @return {@code this}
+		 */
 		public QueryHints build() {
 			if ( affinityRun && affinityKey == null ) {
 				throw new HibernateException( "AffinityKey can't be null" );
