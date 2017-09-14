@@ -29,7 +29,6 @@ import org.apache.ignite.transactions.TransactionIsolation;
 public class IgniteLocalTransactionCoordinator extends ForwardingTransactionCoordinator {
 
 	private static Log log = LoggerFactory.getLogger();
-	private final IgniteDatastoreProvider datastoreProvider;
 	private final TransactionConcurrency concurrency;
 	private final TransactionIsolation isolation;
 	private final long timeout;
@@ -47,7 +46,6 @@ public class IgniteLocalTransactionCoordinator extends ForwardingTransactionCoor
 			TransactionCoordinator delegate,
 			IgniteDatastoreProvider datastoreProvider) {
 		super( delegate );
-		this.datastoreProvider = datastoreProvider;
 		this.igniteTransactions = datastoreProvider.getCacheManager().transactions();
 
 		ConfigurationPropertyReader propertyReader = datastoreProvider.getPropertyReader();

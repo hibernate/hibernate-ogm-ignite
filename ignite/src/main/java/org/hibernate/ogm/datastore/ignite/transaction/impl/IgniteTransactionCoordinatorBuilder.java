@@ -17,6 +17,8 @@ import org.hibernate.resource.transaction.spi.TransactionCoordinatorOwner;
  * @author Sergey Chernolyas &amp;sergey_chernolyas@gmail.com&amp;
  */
 public class IgniteTransactionCoordinatorBuilder implements TransactionCoordinatorBuilder {
+
+	private static final long serialVersionUID = 1L;
 	private final TransactionCoordinatorBuilder delegate;
 	private final IgniteDatastoreProvider datastoreProvider;
 
@@ -24,24 +26,19 @@ public class IgniteTransactionCoordinatorBuilder implements TransactionCoordinat
 	 * @param delegate transaction delegate
 	 * @param datastoreProvider instance of IgniteDatastoreProvider
 	 */
-	public IgniteTransactionCoordinatorBuilder(
-			TransactionCoordinatorBuilder delegate, IgniteDatastoreProvider datastoreProvider) {
+	public IgniteTransactionCoordinatorBuilder(TransactionCoordinatorBuilder delegate, IgniteDatastoreProvider datastoreProvider) {
 		this.delegate = delegate;
 		this.datastoreProvider = datastoreProvider;
 	}
 
 	@Override
-	public TransactionCoordinator buildTransactionCoordinator(
-			TransactionCoordinatorOwner owner,
-			TransactionCoordinatorOptions options) {
-		TransactionCoordinator coordinator = delegate.buildTransactionCoordinator( owner, options );
+	public TransactionCoordinator buildTransactionCoordinator(TransactionCoordinatorOwner owner, TransactionCoordinatorOptions options) {
 		if ( delegate.isJta() ) {
-			//return new IgniteJtaTransactionCoordinator( coordinator, datastoreProvider );
-			//@todo add currect code of Victor
+			// @todo need migrate current code of Victor?
 			throw new UnsupportedOperationException( "Not supported yet" );
 		}
 		else {
-			return new IgniteLocalTransactionCoordinator( coordinator, datastoreProvider );
+			return new IgniteLocalTransactionCoordinator( delegate.buildTransactionCoordinator( owner, options ), datastoreProvider );
 		}
 	}
 

@@ -72,8 +72,7 @@ import org.hibernate.service.spi.Stoppable;
  *
  * @author Dmitriy Kozlov
  */
-public class IgniteDatastoreProvider extends BaseDatastoreProvider
-		implements Startable, Stoppable, ServiceRegistryAwareService, Configurable {
+public class IgniteDatastoreProvider extends BaseDatastoreProvider implements Startable, Stoppable, ServiceRegistryAwareService, Configurable {
 
 	private static final long serialVersionUID = 2278253954737494852L;
 	private static final Log log = LoggerFactory.getLogger();
@@ -142,8 +141,8 @@ public class IgniteDatastoreProvider extends BaseDatastoreProvider
 
 	public IgniteCache<Object, BinaryObject> getAssociationCache(AssociationKeyMetadata keyMetadata) {
 		return keyMetadata.getAssociationKind() == AssociationKind.EMBEDDED_COLLECTION
-					? getEntityCache( keyMetadata.getEntityKeyMetadata() )
-					: getEntityCache( keyMetadata.getTable() );
+				? getEntityCache( keyMetadata.getEntityKeyMetadata() )
+						: getEntityCache( keyMetadata.getTable() );
 	}
 
 	public IgniteCache<String, Long> getIdSourceCache(IdSourceKeyMetadata keyMetadata) {
@@ -247,8 +246,8 @@ public class IgniteDatastoreProvider extends BaseDatastoreProvider
 							"Neither " + IgniteProperties.CONFIGURATION_RESOURCE_NAME
 							+ " nor " + IgniteProperties.CONFIGURATION_CLASS_NAME
 							+ " properties is not set"
-					)
-			);
+							)
+					);
 		}
 		if ( !( jtaPlatform instanceof NoJtaPlatform ) ) {
 			conf.getTransactionConfiguration().setTxManagerFactory( new IgniteTransactionManagerFactory( jtaPlatform ) );
@@ -368,11 +367,12 @@ public class IgniteDatastoreProvider extends BaseDatastoreProvider
 	 * @param key entity key
 	 * @return string key
 	 */
+	@SuppressWarnings("unchecked")
 	public Object createKeyObject(EntityKey key) {
 		Object result = null;
 		if ( key.getColumnValues().length == 1 ) {
 			IgniteCache<Object, BinaryObject> entityCache = getEntityCache( key.getMetadata() );
-			CacheConfiguration cacheConfig = entityCache.getConfiguration( CacheConfiguration.class );
+			CacheConfiguration<?,?> cacheConfig = entityCache.getConfiguration( CacheConfiguration.class );
 			result = toValidKeyObject( key.getColumnValues()[0], cacheConfig.getKeyType() );
 		}
 		else {
@@ -444,12 +444,13 @@ public class IgniteDatastoreProvider extends BaseDatastoreProvider
 	 * @param keyMetadata
 	 * @return
 	 */
+	@SuppressWarnings("unchecked")
 	private String findKeyType(EntityKeyMetadata keyMetadata) {
 		String result = compositeIdTypes.get( keyMetadata.getTable() );
 		if ( result == null ) {
 			String cacheType = getEntityTypeName( keyMetadata.getTable() );
 			IgniteCache<Object, BinaryObject> cache = getEntityCache( keyMetadata );
-			CacheConfiguration cacheConfig = cache.getConfiguration( CacheConfiguration.class );
+			CacheConfiguration<?,?> cacheConfig = cache.getConfiguration( CacheConfiguration.class );
 			if ( cacheConfig.getQueryEntities() != null ) {
 				for ( QueryEntity qe : (Collection<QueryEntity>) cacheConfig.getQueryEntities() ) {
 					if ( qe.getValueType() != null && cacheType.equalsIgnoreCase( qe.getValueType() ) ) {
@@ -459,19 +460,14 @@ public class IgniteDatastoreProvider extends BaseDatastoreProvider
 				}
 			}
 			if ( result == null ) {
-				/*if ( cacheConfig.getTypeMetadata() != null ) {
-					for ( CacheTypeMetadata ctm : (Collection<CacheTypeMetadata>) cacheConfig.getTypeMetadata() ) {
-						if ( ctm.getValueType() != null && cacheType.equalsIgnoreCase( ctm.getValueType() ) ) {
-							result = ctm.getKeyType();
-							break;
-						}
-					}
+				if ( cacheConfig.getKeyType() != null ) {
+					result = cacheConfig.getKeyType().getSimpleName();
 				}
-				if ( result == null ) { */
-				//if nothing found we use id field name
-				result = StringHelper.stringBeforePoint( keyMetadata.getColumnNames()[0] );
-				result = StringUtils.capitalize( result );
-				//}
+				if ( result == null ) {
+					// if nothing found we use id field name
+					result = StringHelper.stringBeforePoint( keyMetadata.getColumnNames()[0] );
+					result = StringUtils.capitalize( result );
+				}
 			}
 			compositeIdTypes.put( keyMetadata.getTable(), result );
 		}
