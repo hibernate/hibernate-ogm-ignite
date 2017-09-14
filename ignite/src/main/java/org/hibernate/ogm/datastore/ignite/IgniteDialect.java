@@ -659,6 +659,10 @@ public class IgniteDialect extends BaseGridDialect implements GridDialect, Query
 		return IgniteGridTypeMapper.INSTANCE.overrideType( type );
 	}
 
+	public org.apache.ignite.Ignite getIgnite() {
+		return provider.getCacheManager();
+	}
+
 	private abstract class BaseResultCursor<T> implements ClosableIterator<Tuple> {
 
 		private final Iterator<T> resultIterator;
