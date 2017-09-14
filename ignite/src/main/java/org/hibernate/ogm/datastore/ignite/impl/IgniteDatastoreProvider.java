@@ -159,11 +159,12 @@ public class IgniteDatastoreProvider extends BaseDatastoreProvider implements St
 	}
 
 	@Override
-	public void configure(Map configurationMap) {
+	public void configure(Map map) {
 		config = new IgniteProviderConfiguration();
-		propertyReader = new ConfigurationPropertyReader( configurationMap );
+		propertyReader = new ConfigurationPropertyReader( map );
 		config.initialize( propertyReader );
 	}
+	
 	public ConfigurationPropertyReader getPropertyReader() {
 		return propertyReader;
 	}
