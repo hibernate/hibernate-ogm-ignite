@@ -164,7 +164,7 @@ public class IgniteDatastoreProvider extends BaseDatastoreProvider implements St
 		propertyReader = new ConfigurationPropertyReader( map );
 		config.initialize( propertyReader );
 	}
-	
+
 	public ConfigurationPropertyReader getPropertyReader() {
 		return propertyReader;
 	}
@@ -328,6 +328,7 @@ public class IgniteDatastoreProvider extends BaseDatastoreProvider implements St
 	 */
 	private static class ComputeForLocalQueries<T> implements IgniteCallable<List<T>> {
 
+		private static final long serialVersionUID = 1L;
 		private final String cacheName;
 		private final SqlFieldsQuery query;
 		@IgniteInstanceResource
