@@ -41,7 +41,6 @@ import org.hibernate.persister.entity.EntityPersister;
  */
 public class IgniteCacheInitializer extends BaseSchemaDefiner {
 
-	private static final long serialVersionUID = -8564869898957031491L;
 	private static final Log log = LoggerFactory.getLogger();
 	private static Map<Class<?>, Class<?>> h2TypeMapping;
 

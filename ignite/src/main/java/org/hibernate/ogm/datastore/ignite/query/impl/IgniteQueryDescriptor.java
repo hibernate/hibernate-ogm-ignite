@@ -16,8 +16,6 @@ import java.util.List;
  */
 public class IgniteQueryDescriptor implements Serializable {
 
-	private static final long serialVersionUID = 1L;
-
 	private final String sql;
 	private final List<Object> indexedParameters;
 	private final String table;

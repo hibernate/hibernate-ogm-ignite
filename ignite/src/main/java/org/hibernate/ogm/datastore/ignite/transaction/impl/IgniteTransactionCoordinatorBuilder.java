@@ -17,8 +17,7 @@ import org.hibernate.resource.transaction.spi.TransactionCoordinatorOwner;
  * @author Sergey Chernolyas &amp;sergey_chernolyas@gmail.com&amp;
  */
 public class IgniteTransactionCoordinatorBuilder implements TransactionCoordinatorBuilder {
-
-	private static final long serialVersionUID = 1L;
+	
 	private final TransactionCoordinatorBuilder delegate;
 	private final IgniteDatastoreProvider datastoreProvider;
 

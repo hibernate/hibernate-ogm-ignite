@@ -22,8 +22,6 @@ import org.hibernate.type.descriptor.java.JavaTypeDescriptor;
  */
 public class IgniteGridTypeDescriptor implements GridTypeDescriptor {
 
-	private static final long serialVersionUID = -7987036362000007230L;
-
 	private final Class targetClass;
 
 	public IgniteGridTypeDescriptor(Class targetClass) {
