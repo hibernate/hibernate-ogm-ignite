@@ -9,7 +9,7 @@ org.hibernate.ogm.backendtck.type.converter.JpaAttributeConverterTest#jpaConvert
 
 org.hibernate.ogm.backendtck.optimisticlocking.OptimisticLockingTest
 
-//projection not supported by Ignite. Ignite load key and full value object only
+//projection is not supported
 //https://issues.apache.org/jira/browse/IGNITE-6286
 org.hibernate.ogm.backendtck.queries.SimpleQueriesTest
 
@@ -20,11 +20,11 @@ org.hibernate.ogm.backendtck.queries.CompositeIdQueriesTest
 org.hibernate.ogm.backendtck.queries.SimpleQueriesWithTablePerClassInheritanceTest
 org.hibernate.ogm.backendtck.queries.SimpleQueriesWithSingleTableInheritanceTest
 org.hibernate.ogm.backendtck.queries.SimpleQueriesWithTablePerClassNotSupportedTest
+//https://issues.apache.org/jira/browse/IGNITE-6286
 org.hibernate.ogm.backendtck.queries.parameters.QueryWithParametersTest
 
 org.hibernate.ogm.backendtck.inheritance.singletable.family.SingleTableInheritancePersistTest
 org.hibernate.ogm.backendtck.inheritance.tableperclass.family.TablePerClassInheritancePersistTest
-org.hibernate.ogm.backendtck.inheritance.tableperclass.depositor.PolymorphicAssociationTest
 org.hibernate.ogm.backendtck.inheritance.tableperclass.depositor.PolymorphicAssociationTest
 
 org.hibernate.ogm.backendtck.associations.storageconfiguration.AssociationStorageConfiguredViaAnnotationsTest
@@ -35,11 +35,10 @@ org.hibernate.ogm.backendtck.associations.collection.unidirectional.CollectionUn
 org.hibernate.ogm.backendtck.associations.collection.types.MapContentsStoredInSeparateDocumentTest
 org.hibernate.ogm.backendtck.associations.collection.manytomany.ManyToManyExtraTest#testUnidirectionalManyToMany
 
+// the method uses 'session.flush()'. Ignite not supports this feature. It is issue for Ignite team
 org.hibernate.ogm.backendtck.associations.manytoone.ManyToOneTest#testUnidirectionalManyToOne
-org.hibernate.ogm.backendtck.associations.manytoone.ManyToOneTest#testRemovalOfTransientEntityWithAssociation
 
 
-org.hibernate.ogm.backendtck.id.SequenceIdGeneratorTest
 org.hibernate.ogm.backendtck.id.SequenceNextValueGenerationTest
 
 org.hibernate.ogm.backendtck.compensation.CompensationSpiJpaTest

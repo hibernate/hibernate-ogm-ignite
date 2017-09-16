@@ -9,9 +9,11 @@ package org.hibernate.ogm.datastore.ignite.impl;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 
 import org.apache.ignite.cache.CacheAtomicityMode;
 import org.apache.ignite.cache.QueryEntity;
@@ -110,6 +112,7 @@ public class IgniteCacheInitializer extends BaseSchemaDefiner {
 	}
 
 	private void initializeIdSources(SchemaDefinitionContext context, IgniteDatastoreProvider igniteDatastoreProvider) {
+		Set<String> sequencesWithFullData = new HashSet<>(  );
 		for ( IdSourceKeyMetadata idSourceKeyMetadata : context.getAllIdSourceKeyMetadata() ) {
 			if ( idSourceKeyMetadata.getType() == IdSourceKeyMetadata.IdSourceType.TABLE ) {
 				try {
@@ -125,16 +128,19 @@ public class IgniteCacheInitializer extends BaseSchemaDefiner {
 					throw log.unableToInitializeCache( idSourceKeyMetadata.getName(), ex );
 				}
 			}
-			else if ( idSourceKeyMetadata.getType() == IdSourceKeyMetadata.IdSourceType.SEQUENCE ) {
-				if ( idSourceKeyMetadata.getName() != null ) {
-					igniteDatastoreProvider.atomicSequence( idSourceKeyMetadata.getName(),  1, true );
-				}
-			}
 		}
 		//generate sequences
 		for ( Namespace namespace : context.getDatabase().getNamespaces() ) {
 			for ( Sequence sequence : namespace.getSequences() ) {
+				sequencesWithFullData.add( sequence.getName().getSequenceName().getCanonicalName() );
 				igniteDatastoreProvider.atomicSequence( sequence.getName().getSequenceName().getCanonicalName(),  sequence.getInitialValue(), true );
+			}
+		}
+		for ( IdSourceKeyMetadata idSourceKeyMetadata : context.getAllIdSourceKeyMetadata() ) {
+			if ( idSourceKeyMetadata.getType() == IdSourceKeyMetadata.IdSourceType.SEQUENCE ) {
+				if ( idSourceKeyMetadata.getName() != null && !sequencesWithFullData.contains( idSourceKeyMetadata.getName() ) ) {
+					igniteDatastoreProvider.atomicSequence( idSourceKeyMetadata.getName(),  1, true );
+				}
 			}
 		}
 	}
