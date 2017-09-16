@@ -19,7 +19,7 @@ import org.hibernate.type.descriptor.java.BigIntegerTypeDescriptor;
  * @author Victor Kadachigov
  */
 public class IgniteBigIntegerType extends AbstractGenericBasicType<BigInteger> {
-	
+
 	public static final IgniteBigIntegerType INSTANCE = new IgniteBigIntegerType();
 
 	public IgniteBigIntegerType() {

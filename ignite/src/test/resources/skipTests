@@ -22,7 +22,6 @@ org.hibernate.ogm.backendtck.queries.SimpleQueriesWithSingleTableInheritanceTest
 org.hibernate.ogm.backendtck.queries.SimpleQueriesWithTablePerClassNotSupportedTest
 org.hibernate.ogm.backendtck.queries.parameters.QueryWithParametersTest
 
-org.hibernate.ogm.backendtck.inheritance.singletable.depositor.PolymorphicAssociationTest
 org.hibernate.ogm.backendtck.inheritance.singletable.family.SingleTableInheritancePersistTest
 org.hibernate.ogm.backendtck.inheritance.tableperclass.family.TablePerClassInheritancePersistTest
 org.hibernate.ogm.backendtck.inheritance.tableperclass.depositor.PolymorphicAssociationTest

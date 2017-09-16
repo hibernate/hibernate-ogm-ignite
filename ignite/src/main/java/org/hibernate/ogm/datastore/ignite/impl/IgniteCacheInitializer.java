@@ -35,15 +35,19 @@ import org.hibernate.ogm.model.key.spi.AssociationKind;
 import org.hibernate.ogm.model.key.spi.EntityKeyMetadata;
 import org.hibernate.ogm.model.key.spi.IdSourceKeyMetadata;
 import org.hibernate.persister.entity.EntityPersister;
+import org.hibernate.type.CustomType;
+import org.hibernate.type.EnumType;
+import org.hibernate.usertype.UserType;
 
 /**
  * @author Victor Kadachigov
+ * @see <a href="https://github.com/apache/ignite/blob/master/examples/src/main/java/org/apache/ignite/examples/binary/datagrid/CacheClientBinaryQueryExample.java">schema example</a>
+ * @see <a href="http://apache-ignite-users.70518.x6.nabble.com/SQL-queries-with-BinaryObject-td5636.html">SQL queries with BinaryObject</a>
  */
 public class IgniteCacheInitializer extends BaseSchemaDefiner {
 
 	private static final Log log = LoggerFactory.getLogger();
 	private static Map<Class<?>, Class<?>> h2TypeMapping;
-
 	static {
 		Map<Class<?>, Class<?>> map = new HashMap<>(  );
 		map.put( Character.class, String.class );
@@ -55,7 +59,6 @@ public class IgniteCacheInitializer extends BaseSchemaDefiner {
 
 	@Override
 	public void initializeSchema(SchemaDefinitionContext context) {
-		context.getTableEntityTypeMapping();
 
 		DatastoreProvider provider = context.getSessionFactory().getServiceRegistry().getService( DatastoreProvider.class );
 		if ( provider instanceof IgniteDatastoreProvider ) {
@@ -186,7 +189,13 @@ public class IgniteCacheInitializer extends BaseSchemaDefiner {
 
 		QueryEntity queryEntity = new QueryEntity();
 		queryEntity.setTableName( entityKeyMetadata.getTable() );
-		queryEntity.setKeyType( getEntityIdClassName( entityKeyMetadata.getTable(), context ).getSimpleName() );
+		Class<?> keyClass = getEntityIdClassName( entityKeyMetadata.getTable(), context );
+		if ( isJdkType( keyClass ) ) {
+			queryEntity.setKeyType( keyClass.getName() );
+		}
+		else {
+			queryEntity.setKeyType( keyClass.getSimpleName() );
+		}
 		queryEntity.setValueType( StringHelper.stringAfterPoint( entityKeyMetadata.getTable() ) );
 		addTableInfo( queryEntity, context, entityKeyMetadata.getTable() );
 
@@ -214,12 +223,30 @@ public class IgniteCacheInitializer extends BaseSchemaDefiner {
 				if ( value.getClass() == SimpleValue.class ) {
 					// it is simple type. add the field
 					SimpleValue simpleValue = (SimpleValue) value;
-					Class<?> returnValue = simpleValue.getType().getReturnedClass();
-					returnValue = h2TypeMapping.getOrDefault( returnValue , returnValue  );
-					queryEntity.addQueryField( currentColumn.getName(),returnValue.getName(),null );
+					Class<?> targetTypeClass = simpleValue.getType().getClass();
+					if ( targetTypeClass.equals( CustomType.class ) ) {
+						CustomType type = (CustomType) currentColumn.getValue().getType();
+						UserType userType = type.getUserType();
+						if ( userType instanceof EnumType ) {
+							EnumType enumType = (EnumType) type.getUserType();
+							queryEntity.addQueryField( currentColumn.getName(), (enumType.isOrdinal() ? Integer.class.getName() : String.class.getName() ), null );
+						}
+						else {
+							throw new UnsupportedOperationException( "Unsupported user type: " + userType.getClass() );
+						}
+					}
+					else {
+						Class<?> returnValue = simpleValue.getType().getReturnedClass();
+						returnValue = h2TypeMapping.getOrDefault( returnValue, returnValue );
+						queryEntity.addQueryField( currentColumn.getName(), returnValue.getName(), null );
+					}
 				}
 			}
 		}
+	}
+
+	private boolean isJdkType(Class<?> valueClass) {
+		return valueClass.getName().startsWith( "java." );
 
 	}
 }

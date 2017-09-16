@@ -163,7 +163,7 @@ public class IgniteDatastoreProvider extends BaseDatastoreProvider implements St
 		propertyReader = new ConfigurationPropertyReader( map );
 		config.initialize( propertyReader );
 	}
-	
+
 	public ConfigurationPropertyReader getPropertyReader() {
 		return propertyReader;
 	}

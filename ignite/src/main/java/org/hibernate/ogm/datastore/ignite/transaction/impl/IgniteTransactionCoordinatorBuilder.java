@@ -17,7 +17,7 @@ import org.hibernate.resource.transaction.spi.TransactionCoordinatorOwner;
  * @author Sergey Chernolyas &amp;sergey_chernolyas@gmail.com&amp;
  */
 public class IgniteTransactionCoordinatorBuilder implements TransactionCoordinatorBuilder {
-	
+
 	private final TransactionCoordinatorBuilder delegate;
 	private final IgniteDatastoreProvider datastoreProvider;
 
