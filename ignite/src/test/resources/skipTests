@@ -39,8 +39,6 @@ org.hibernate.ogm.backendtck.associations.collection.manytomany.ManyToManyExtraT
 org.hibernate.ogm.backendtck.associations.manytoone.ManyToOneTest#testUnidirectionalManyToOne
 
 
-org.hibernate.ogm.backendtck.id.SequenceNextValueGenerationTest
-
 org.hibernate.ogm.backendtck.compensation.CompensationSpiJpaTest
 org.hibernate.ogm.backendtck.compensation.CompensationSpiTest
 
