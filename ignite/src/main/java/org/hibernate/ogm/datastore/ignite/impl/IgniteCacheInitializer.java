@@ -7,6 +7,13 @@
 package org.hibernate.ogm.datastore.ignite.impl;
 
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
 
 import org.apache.ignite.cache.CacheAtomicityMode;
 import org.apache.ignite.cache.QueryEntity;
@@ -14,6 +21,12 @@ import org.apache.ignite.cache.QueryIndex;
 import org.apache.ignite.cache.QueryIndexType;
 import org.apache.ignite.configuration.CacheConfiguration;
 import org.hibernate.HibernateException;
+import org.hibernate.boot.model.relational.Namespace;
+import org.hibernate.boot.model.relational.Sequence;
+import org.hibernate.mapping.Column;
+import org.hibernate.mapping.SimpleValue;
+import org.hibernate.mapping.Table;
+import org.hibernate.mapping.Value;
 import org.hibernate.ogm.datastore.ignite.logging.impl.Log;
 import org.hibernate.ogm.datastore.ignite.logging.impl.LoggerFactory;
 import org.hibernate.ogm.datastore.ignite.util.StringHelper;
@@ -23,16 +36,28 @@ import org.hibernate.ogm.model.key.spi.AssociationKeyMetadata;
 import org.hibernate.ogm.model.key.spi.AssociationKind;
 import org.hibernate.ogm.model.key.spi.EntityKeyMetadata;
 import org.hibernate.ogm.model.key.spi.IdSourceKeyMetadata;
-import org.hibernate.ogm.model.key.spi.IdSourceKeyMetadata.IdSourceType;
 import org.hibernate.persister.entity.EntityPersister;
+import org.hibernate.type.CustomType;
+import org.hibernate.type.EnumType;
+import org.hibernate.usertype.UserType;
 
 /**
  * @author Victor Kadachigov
+ * @see <a href="https://github.com/apache/ignite/blob/master/examples/src/main/java/org/apache/ignite/examples/binary/datagrid/CacheClientBinaryQueryExample.java">schema example</a>
+ * @see <a href="http://apache-ignite-users.70518.x6.nabble.com/SQL-queries-with-BinaryObject-td5636.html">SQL queries with BinaryObject</a>
  */
 public class IgniteCacheInitializer extends BaseSchemaDefiner {
 
-	private static final long serialVersionUID = -8564869898957031491L;
 	private static final Log log = LoggerFactory.getLogger();
+	private static Map<Class<?>, Class<?>> h2TypeMapping;
+	static {
+		Map<Class<?>, Class<?>> map = new HashMap<>(  );
+		map.put( Character.class, String.class );
+
+		h2TypeMapping = Collections.unmodifiableMap( map );
+	}
+
+
 
 	@Override
 	public void initializeSchema(SchemaDefinitionContext context) {
@@ -49,20 +74,19 @@ public class IgniteCacheInitializer extends BaseSchemaDefiner {
 		}
 	}
 
-	private void initializeEntities(SchemaDefinitionContext context, IgniteDatastoreProvider igniteDatastoreProvider) {
+	private void initializeEntities(SchemaDefinitionContext context, final IgniteDatastoreProvider igniteDatastoreProvider) {
 		for ( EntityKeyMetadata entityKeyMetadata : context.getAllEntityKeyMetadata() ) {
 			try {
 				try {
 					igniteDatastoreProvider.getEntityCache( entityKeyMetadata );
 				}
 				catch (HibernateException ex) {
-					CacheConfiguration config = createCacheConfiguration( entityKeyMetadata, context );
-					igniteDatastoreProvider.initializeCache( config );
+					igniteDatastoreProvider.initializeCache( createEntityCacheConfiguration( entityKeyMetadata, context ) );
 				}
 			}
 			catch (Exception ex) {
 				// just write error to log
-				log.warn( log.unableToInitializeCache( entityKeyMetadata.getTable() ), ex );
+				log.unableToInitializeCache( entityKeyMetadata.getTable(), ex );
 			}
 		}
 	}
@@ -76,58 +100,64 @@ public class IgniteCacheInitializer extends BaseSchemaDefiner {
 						igniteDatastoreProvider.getAssociationCache( associationKeyMetadata );
 					}
 					catch (HibernateException ex) {
-						CacheConfiguration config = createCacheConfiguration( associationKeyMetadata, context );
-						if ( config != null ) {
-							igniteDatastoreProvider.initializeCache( config );
-						}
+						igniteDatastoreProvider.initializeCache( createCacheConfiguration( associationKeyMetadata, context ) );
 					}
 				}
 				catch (Exception ex) {
 					// just write error to log
-					log.warn( log.unableToInitializeCache( associationKeyMetadata.getTable() ), ex );
+					log.unableToInitializeCache( associationKeyMetadata.getTable(), ex );
 				}
-
 			}
 		}
 	}
 
 	private void initializeIdSources(SchemaDefinitionContext context, IgniteDatastoreProvider igniteDatastoreProvider) {
+		Set<String> sequencesWithFullData = new HashSet<>(  );
 		for ( IdSourceKeyMetadata idSourceKeyMetadata : context.getAllIdSourceKeyMetadata() ) {
-			if ( idSourceKeyMetadata.getType() == IdSourceType.TABLE ) {
+			if ( idSourceKeyMetadata.getType() == IdSourceKeyMetadata.IdSourceType.TABLE ) {
 				try {
 					try {
 						igniteDatastoreProvider.getIdSourceCache( idSourceKeyMetadata );
 					}
 					catch (HibernateException ex) {
-						CacheConfiguration config = createCacheConfiguration( idSourceKeyMetadata );
-						igniteDatastoreProvider.initializeCache( config );
+						igniteDatastoreProvider.initializeCache( createCacheConfiguration( idSourceKeyMetadata ) );
 					}
 				}
 				catch (Exception ex) {
 					// just write error to log
-					log.warn( log.unableToInitializeCache( idSourceKeyMetadata.getName() ), ex );
+					throw log.unableToInitializeCache( idSourceKeyMetadata.getName(), ex );
+				}
+			}
+		}
+		//generate sequences
+		for ( Namespace namespace : context.getDatabase().getNamespaces() ) {
+			for ( Sequence sequence : namespace.getSequences() ) {
+				sequencesWithFullData.add( sequence.getName().getSequenceName().getCanonicalName() );
+				igniteDatastoreProvider.atomicSequence( sequence.getName().getSequenceName().getCanonicalName(),  sequence.getInitialValue(), true );
+			}
+		}
+		for ( IdSourceKeyMetadata idSourceKeyMetadata : context.getAllIdSourceKeyMetadata() ) {
+			if ( idSourceKeyMetadata.getType() == IdSourceKeyMetadata.IdSourceType.SEQUENCE ) {
+				if ( idSourceKeyMetadata.getName() != null && !sequencesWithFullData.contains( idSourceKeyMetadata.getName() ) ) {
+					igniteDatastoreProvider.atomicSequence( idSourceKeyMetadata.getName(),  1, true );
 				}
 			}
 		}
 	}
 
-	private CacheConfiguration createCacheConfiguration(IdSourceKeyMetadata idSourceKeyMetadata) {
-		CacheConfiguration result = new CacheConfiguration();
+	private CacheConfiguration<?,?> createCacheConfiguration(IdSourceKeyMetadata idSourceKeyMetadata) {
+		CacheConfiguration<Object, Object> result = new CacheConfiguration<>();
 		result.setName( StringHelper.stringBeforePoint( idSourceKeyMetadata.getName() ) );
 		return result;
 	}
 
-	private CacheConfiguration createCacheConfiguration(AssociationKeyMetadata associationKeyMetadata, SchemaDefinitionContext context) {
+	private CacheConfiguration<?,?> createCacheConfiguration(AssociationKeyMetadata associationKeyMetadata, SchemaDefinitionContext context) {
 
-		if ( associationKeyMetadata.getColumnNames().length > 1 ) {
-			//composite id. not yet implemented
-			return null;
-		}
-
-		CacheConfiguration result = new CacheConfiguration();
+		CacheConfiguration<Object, Object> result = new CacheConfiguration<>();
 		result.setName( StringHelper.stringBeforePoint( associationKeyMetadata.getTable() ) );
 
 		QueryEntity queryEntity = new QueryEntity();
+		queryEntity.setTableName( associationKeyMetadata.getTable() );
 		queryEntity.setValueType( StringHelper.stringAfterPoint( associationKeyMetadata.getTable() ) );
 		appendIndex( queryEntity, associationKeyMetadata, context );
 
@@ -138,32 +168,43 @@ public class IgniteCacheInitializer extends BaseSchemaDefiner {
 
 	private void appendIndex(QueryEntity queryEntity, AssociationKeyMetadata associationKeyMetadata, SchemaDefinitionContext context) {
 
-		if ( associationKeyMetadata.getColumnNames().length > 1 ) {
-			//composite id. not yet implemented
-			return;
+		for ( String idFieldName : associationKeyMetadata.getRowKeyColumnNames() ) {
+			queryEntity.addQueryField( generateIndexName( idFieldName ), String.class.getName(),null );
+			queryEntity.setIndexes( Arrays.asList( new QueryIndex( generateIndexName( idFieldName ), QueryIndexType.SORTED  ) ) );
 		}
-
-		String idFieldName = associationKeyMetadata.getColumnNames()[0];
-		String idClassName = getEntityIdClassName( associationKeyMetadata.getEntityKeyMetadata().getTable(), context );
-		queryEntity.addQueryField( idFieldName, idClassName, null );
-		queryEntity.setIndexes( Arrays.asList( new QueryIndex( idFieldName, QueryIndexType.SORTED ) ) );
 	}
 
-	private String getEntityIdClassName( String table, SchemaDefinitionContext context ) {
+	private String generateIndexName(String fieldName) {
+		return fieldName.replace( '.','_' );
+	}
+
+	@SuppressWarnings("rawtypes")
+	private Class getEntityIdClassName( String table, SchemaDefinitionContext context ) {
 		Class<?> entityClass = context.getTableEntityTypeMapping().get( table );
 		EntityPersister entityPersister = context.getSessionFactory().getEntityPersister( entityClass.getName() );
-		Class<?> idClass = entityPersister.getIdentifierType().getReturnedClass();
-		return idClass.getName();
+		return entityPersister.getIdentifierType().getReturnedClass();
 	}
 
-	private CacheConfiguration createCacheConfiguration(EntityKeyMetadata entityKeyMetadata, SchemaDefinitionContext context) {
-		CacheConfiguration result = new CacheConfiguration();
-		result.setName( StringHelper.stringBeforePoint( entityKeyMetadata.getTable() ) );
-		result.setAtomicityMode( CacheAtomicityMode.TRANSACTIONAL );
+	private CacheConfiguration<?, ?> createEntityCacheConfiguration(EntityKeyMetadata entityKeyMetadata, SchemaDefinitionContext context) {
+
+		CacheConfiguration<?, ?> cacheConfiguration = new CacheConfiguration<>();
+		cacheConfiguration.setStoreKeepBinary( true );
+
+		cacheConfiguration.setName( StringHelper.stringBeforePoint( entityKeyMetadata.getTable() ) );
+		cacheConfiguration.setAtomicityMode( CacheAtomicityMode.TRANSACTIONAL );
 
 		QueryEntity queryEntity = new QueryEntity();
-		queryEntity.setKeyType( getEntityIdClassName( entityKeyMetadata.getTable(), context ) );
+		queryEntity.setTableName( entityKeyMetadata.getTable() );
+		Class<?> keyClass = getEntityIdClassName( entityKeyMetadata.getTable(), context );
+		if ( isJdkType( keyClass ) ) {
+			queryEntity.setKeyType( keyClass.getName() );
+		}
+		else {
+			queryEntity.setKeyType( keyClass.getSimpleName() );
+		}
 		queryEntity.setValueType( StringHelper.stringAfterPoint( entityKeyMetadata.getTable() ) );
+		addTableInfo( queryEntity, context, entityKeyMetadata.getTable() );
+
 		for ( AssociationKeyMetadata associationKeyMetadata : context.getAllAssociationKeyMetadata() ) {
 			if ( associationKeyMetadata.getAssociationKind() != AssociationKind.EMBEDDED_COLLECTION
 					&& associationKeyMetadata.getTable().equals( entityKeyMetadata.getTable() )
@@ -171,7 +212,47 @@ public class IgniteCacheInitializer extends BaseSchemaDefiner {
 				appendIndex( queryEntity, associationKeyMetadata, context );
 			}
 		}
-		result.setQueryEntities( Arrays.asList( queryEntity ) );
-		return result;
+		log.debugf( "QueryEntity info :%s;", queryEntity );
+		cacheConfiguration.setQueryEntities( Arrays.asList( queryEntity ) );
+		return cacheConfiguration;
+	}
+
+	@SuppressWarnings("unchecked")
+	private void addTableInfo(QueryEntity queryEntity, SchemaDefinitionContext context, String tableName) {
+		Namespace namespace = context.getDatabase().getDefaultNamespace();
+		Optional<Table> tableOptional = namespace.getTables().stream().filter( currentTable -> currentTable.getName().equals( tableName ) ).findFirst();
+		if ( tableOptional.isPresent() ) {
+			Table table = tableOptional.get();
+			for ( Iterator<Column> columnIterator = table.getColumnIterator(); columnIterator.hasNext();) {
+				Column currentColumn = columnIterator.next();
+				Value value = currentColumn.getValue();
+				if ( value.getClass() == SimpleValue.class ) {
+					// it is simple type. add the field
+					SimpleValue simpleValue = (SimpleValue) value;
+					Class<?> targetTypeClass = simpleValue.getType().getClass();
+					if ( targetTypeClass.equals( CustomType.class ) ) {
+						CustomType type = (CustomType) currentColumn.getValue().getType();
+						UserType userType = type.getUserType();
+						if ( userType instanceof EnumType ) {
+							EnumType enumType = (EnumType) type.getUserType();
+							queryEntity.addQueryField( currentColumn.getName(), (enumType.isOrdinal() ? Integer.class.getName() : String.class.getName() ), null );
+						}
+						else {
+							throw new UnsupportedOperationException( "Unsupported user type: " + userType.getClass() );
+						}
+					}
+					else {
+						Class<?> returnValue = simpleValue.getType().getReturnedClass();
+						returnValue = h2TypeMapping.getOrDefault( returnValue, returnValue );
+						queryEntity.addQueryField( currentColumn.getName(), returnValue.getName(), null );
+					}
+				}
+			}
+		}
+	}
+
+	private boolean isJdkType(Class<?> valueClass) {
+		return valueClass.getName().startsWith( "java." );
+
 	}
 }

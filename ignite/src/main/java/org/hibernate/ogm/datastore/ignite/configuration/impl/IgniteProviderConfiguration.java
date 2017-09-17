@@ -38,27 +38,28 @@ public class IgniteProviderConfiguration {
 	/**
 	 * Initialize the internal values from the given {@link Map}.
 	 *
-	 * @param configurationMap The values to use as configuration
+	 * @param configurationPropertyReader The values to use as configuration
 	 */
-	public void initialize(Map configurationMap) {
-		this.url = new ConfigurationPropertyReader( configurationMap )
+	@SuppressWarnings("unchecked")
+	public void initialize(ConfigurationPropertyReader configurationPropertyReader) {
+		this.url = configurationPropertyReader
 			.property( IgniteProperties.CONFIGURATION_RESOURCE_NAME, URL.class )
 			.withDefault( IgniteProviderConfiguration.class.getClassLoader().getResource( DEFAULT_CONFIG ) )
 			.getValue();
 
-		String className = new ConfigurationPropertyReader( configurationMap )
+		String configurationClassName = configurationPropertyReader
 				.property( IgniteProperties.CONFIGURATION_CLASS_NAME, String.class )
 				.getValue();
-		if ( StringUtils.isNotEmpty( className ) ) {
+		if ( StringUtils.isNotEmpty( configurationClassName ) ) {
 			try {
-				this.configBuilderClass = (Class<IgniteConfigurationBuilder>) Class.forName( className );
+				this.configBuilderClass = (Class<IgniteConfigurationBuilder>) Class.forName( configurationClassName );
 			}
 			catch (ClassNotFoundException ex) {
 				throw log.invalidPropertyValue( IgniteProperties.CONFIGURATION_CLASS_NAME, ex.getMessage(), ex );
 			}
 		}
 
-		this.instanceName = new ConfigurationPropertyReader( configurationMap )
+		this.instanceName = configurationPropertyReader
 				.property( IgniteProperties.IGNITE_INSTANCE_NAME, String.class )
 				.getValue();
 	}

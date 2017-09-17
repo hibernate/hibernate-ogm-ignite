@@ -85,4 +85,8 @@ public class IgniteTupleSnapshot implements TupleSnapshot {
 	public BinaryObject getCacheValue() {
 		return binaryObject;
 	}
+
+	public EntityKeyMetadata getEntityKeyMetadata() {
+		return keyMetadata;
+	}
 }

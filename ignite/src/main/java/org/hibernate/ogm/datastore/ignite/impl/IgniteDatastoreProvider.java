@@ -13,7 +13,6 @@ import java.util.Map;
 import java.util.UUID;
 
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.ignite.Ignite;
 import org.apache.ignite.IgniteAtomicSequence;
 import org.apache.ignite.IgniteCache;
@@ -24,11 +23,11 @@ import org.apache.ignite.IgniteState;
 import org.apache.ignite.Ignition;
 import org.apache.ignite.binary.BinaryObject;
 import org.apache.ignite.binary.BinaryObjectBuilder;
-import org.apache.ignite.cache.CacheTypeMetadata;
 import org.apache.ignite.cache.QueryEntity;
 import org.apache.ignite.cache.query.SqlFieldsQuery;
 import org.apache.ignite.configuration.CacheConfiguration;
 import org.apache.ignite.configuration.IgniteConfiguration;
+import org.apache.ignite.configuration.PersistentStoreConfiguration;
 import org.apache.ignite.internal.IgniteEx;
 import org.apache.ignite.internal.IgnitionEx;
 import org.apache.ignite.lang.IgniteCallable;
@@ -46,6 +45,7 @@ import org.hibernate.ogm.datastore.ignite.logging.impl.Log;
 import org.hibernate.ogm.datastore.ignite.logging.impl.LoggerFactory;
 import org.hibernate.ogm.datastore.ignite.query.impl.QueryHints;
 import org.hibernate.ogm.datastore.ignite.query.parsing.impl.IgniteQueryParserService;
+import org.hibernate.ogm.datastore.ignite.transaction.impl.IgniteTransactionCoordinatorBuilder;
 import org.hibernate.ogm.datastore.ignite.transaction.impl.IgniteTransactionManagerFactory;
 import org.hibernate.ogm.datastore.ignite.util.StringHelper;
 import org.hibernate.ogm.datastore.spi.BaseDatastoreProvider;
@@ -59,8 +59,9 @@ import org.hibernate.ogm.model.key.spi.EntityKeyMetadata;
 import org.hibernate.ogm.model.key.spi.IdSourceKeyMetadata;
 import org.hibernate.ogm.model.key.spi.RowKey;
 import org.hibernate.ogm.query.spi.QueryParserService;
+import org.hibernate.ogm.util.configurationreader.spi.ConfigurationPropertyReader;
+import org.hibernate.resource.transaction.TransactionCoordinatorBuilder;
 import org.hibernate.service.spi.Configurable;
-import org.hibernate.service.spi.ServiceException;
 import org.hibernate.service.spi.ServiceRegistryAwareService;
 import org.hibernate.service.spi.ServiceRegistryImplementor;
 import org.hibernate.service.spi.Startable;
@@ -71,18 +72,17 @@ import org.hibernate.service.spi.Stoppable;
  *
  * @author Dmitriy Kozlov
  */
-public class IgniteDatastoreProvider extends BaseDatastoreProvider
-		implements Startable, Stoppable, ServiceRegistryAwareService, Configurable {
+public class IgniteDatastoreProvider extends BaseDatastoreProvider implements Startable, Stoppable, ServiceRegistryAwareService, Configurable {
 
-	private static final long serialVersionUID = 2278253954737494852L;
 	private static final Log log = LoggerFactory.getLogger();
 
 	private JtaPlatform jtaPlatform;
 	private JdbcServices jdbcServices;
 	private IgniteEx cacheManager;
 	private IgniteProviderConfiguration config;
+	private ConfigurationPropertyReader propertyReader;
 
-	private String gridName;
+	private String instanceName;
 	/** true - if we run inside the server node (for distributed tasks) */
 	private boolean localNode = false;
 	/** true - if we start node and we have to stop it */
@@ -106,7 +106,7 @@ public class IgniteDatastoreProvider extends BaseDatastoreProvider
 			cache = cacheManager.cache( entityCacheName );
 		}
 		catch (IllegalStateException ex) {
-			if ( Ignition.state( gridName ) == IgniteState.STOPPED ) {
+			if ( Ignition.state( instanceName ) == IgniteState.STOPPED ) {
 				log.stoppedIgnite();
 				restart();
 				cache = cacheManager.cache( entityCacheName );
@@ -140,8 +140,8 @@ public class IgniteDatastoreProvider extends BaseDatastoreProvider
 
 	public IgniteCache<Object, BinaryObject> getAssociationCache(AssociationKeyMetadata keyMetadata) {
 		return keyMetadata.getAssociationKind() == AssociationKind.EMBEDDED_COLLECTION
-					? getEntityCache( keyMetadata.getEntityKeyMetadata() )
-					: getEntityCache( keyMetadata.getTable() );
+				? getEntityCache( keyMetadata.getEntityKeyMetadata() )
+						: getEntityCache( keyMetadata.getTable() );
 	}
 
 	public IgniteCache<String, Long> getIdSourceCache(IdSourceKeyMetadata keyMetadata) {
@@ -160,7 +160,12 @@ public class IgniteDatastoreProvider extends BaseDatastoreProvider
 	@Override
 	public void configure(Map map) {
 		config = new IgniteProviderConfiguration();
-		config.initialize( map );
+		propertyReader = new ConfigurationPropertyReader( map );
+		config.initialize( propertyReader );
+	}
+
+	public ConfigurationPropertyReader getPropertyReader() {
+		return propertyReader;
 	}
 
 	@Override
@@ -176,24 +181,40 @@ public class IgniteDatastoreProvider extends BaseDatastoreProvider
 			localNode = Thread.currentThread() instanceof IgniteThread; // vk: take local node instance
 			if ( localNode ) {
 				cacheManager = (IgniteEx) Ignition.localIgnite();
-				gridName = cacheManager.name();
+				instanceName = cacheManager.name();
 			}
 			else {
 				IgniteConfiguration conf = createIgniteConfiguration();
-				gridName = createGridName( conf );
+				instanceName = createInstanceName( conf );
 				try {
-					cacheManager = (IgniteEx) Ignition.ignite( gridName );
+					cacheManager = (IgniteEx) Ignition.ignite( instanceName );
+					log.info( "== Instance of Ignite taken ==" );
 				}
 				catch (IgniteIllegalStateException iise) {
 					// not found, then start
-					conf.setGridName( gridName );
+					conf.setIgniteInstanceName( instanceName );
+
+					Boolean usePersistence = propertyReader.property( IgniteProperties.IGNITE_SUPPORT_PERSISTENCE,Boolean.class )
+							.withDefault( Boolean.FALSE ).getValue();
+
+					if ( usePersistence ) {
+						PersistentStoreConfiguration persistentStoreConfiguration = new PersistentStoreConfiguration();
+						String workDirectory = propertyReader.property( IgniteProperties.IGNITE_WORK_DIRECTORY,String.class )
+								.required().getValue();
+						log.infof( "workDirectory: %s",workDirectory  );
+						conf.setWorkDirectory( workDirectory );
+						conf.setPersistentStoreConfiguration( persistentStoreConfiguration );
+					}
+
 					cacheManager = (IgniteEx) Ignition.start( conf );
+					log.info( "== New instance of Ignite started ==" );
+					if ( usePersistence ) {
+						//call "active(false)" throws exception. it is question for Ignite team
+						cacheManager.active( true );
+					}
 					stopOnExit = true;
 				}
 			}
-		}
-		catch (ServiceException ex) {
-			throw ex;
 		}
 		catch (Exception ex) {
 			throw log.unableToStartDatastoreProvider( ex );
@@ -225,8 +246,8 @@ public class IgniteDatastoreProvider extends BaseDatastoreProvider
 							"Neither " + IgniteProperties.CONFIGURATION_RESOURCE_NAME
 							+ " nor " + IgniteProperties.CONFIGURATION_CLASS_NAME
 							+ " properties is not set"
-					)
-			);
+							)
+					);
 		}
 		if ( !( jtaPlatform instanceof NoJtaPlatform ) ) {
 			conf.getTransactionConfiguration().setTxManagerFactory( new IgniteTransactionManagerFactory( jtaPlatform ) );
@@ -234,15 +255,19 @@ public class IgniteDatastoreProvider extends BaseDatastoreProvider
 		return conf;
 	}
 
-	private String createGridName(IgniteConfiguration conf) {
+	public IgniteEx getCacheManager() {
+		return cacheManager;
+	}
+
+	private String createInstanceName(IgniteConfiguration conf) {
 		String name = null;
 		if ( StringUtils.isNotEmpty( config.getInstanceName() ) ) {
 			name = config.getInstanceName();
 		}
 		else {
 			IgniteConfiguration igniteConfiguration = createIgniteConfiguration();
-			if ( StringUtils.isNotEmpty( igniteConfiguration.getGridName() ) ) {
-				name = igniteConfiguration.getGridName();
+			if ( StringUtils.isNotEmpty( igniteConfiguration.getIgniteInstanceName() ) ) {
+				name = igniteConfiguration.getIgniteInstanceName();
 			}
 			else if ( config.getUrl() != null ) {
 				name = config.getUrl().getPath();
@@ -255,8 +280,8 @@ public class IgniteDatastoreProvider extends BaseDatastoreProvider
 		return name;
 	}
 
-	public String getGridName() {
-		return gridName;
+	public String getInstanceName() {
+		return instanceName;
 	}
 
 	@Override
@@ -291,6 +316,10 @@ public class IgniteDatastoreProvider extends BaseDatastoreProvider
 	public <T> List<T> affinityCall(String cacheName, Object affinityKey, SqlFieldsQuery query) {
 		ComputeForLocalQueries<T> call = new ComputeForLocalQueries<>( cacheName, query );
 		return cacheManager.compute().affinityCall( cacheName, affinityKey, call );
+	}
+
+	public void clearCache(String cacheName) {
+		cacheManager.getOrCreateCache( cacheName ).clear();
 	}
 
 	/**
@@ -338,21 +367,19 @@ public class IgniteDatastoreProvider extends BaseDatastoreProvider
 	 * @param key entity key
 	 * @return string key
 	 */
+	@SuppressWarnings("unchecked")
 	public Object createKeyObject(EntityKey key) {
 		Object result = null;
 		if ( key.getColumnValues().length == 1 ) {
 			IgniteCache<Object, BinaryObject> entityCache = getEntityCache( key.getMetadata() );
-			CacheConfiguration cacheConfig = entityCache.getConfiguration( CacheConfiguration.class );
+			CacheConfiguration<?,?> cacheConfig = entityCache.getConfiguration( CacheConfiguration.class );
 			result = toValidKeyObject( key.getColumnValues()[0], cacheConfig.getKeyType() );
 		}
 		else {
-			HashCodeBuilder hashBuilder = new HashCodeBuilder();
 			BinaryObjectBuilder builder = createBinaryObjectBuilder( findKeyType( key.getMetadata() ) );
 			for ( int i = 0; i < key.getColumnNames().length; i++ ) {
 				builder.setField( StringHelper.stringAfterPoint( key.getColumnNames()[i] ), key.getColumnValues()[i] );
-				hashBuilder.append( key.getColumnValues()[i] );
 			}
-			builder.hashCode( hashBuilder.toHashCode() );
 			result = builder.build();
 		}
 		return result;
@@ -385,13 +412,10 @@ public class IgniteDatastoreProvider extends BaseDatastoreProvider
 				result = rowKey.getColumnValue( associationKeyColumns[0] );
 			}
 			else {
-				HashCodeBuilder hashBuilder = new HashCodeBuilder();
 				BinaryObjectBuilder builder = createBinaryObjectBuilder( findKeyType( keyMetadata.getAssociatedEntityKeyMetadata().getEntityKeyMetadata() ) );
 				for ( int i = 0; i < associationKeyColumns.length; i++ ) {
 					builder.setField( StringHelper.stringAfterPoint( associationKeyColumns[i] ), rowKey.getColumnValue( associationKeyColumns[i] ) );
-					hashBuilder.append( rowKey.getColumnValue( associationKeyColumns[i] ) );
 				}
-				builder.hashCode( hashBuilder.toHashCode() );
 				result = builder.build();
 			}
 		}
@@ -420,12 +444,13 @@ public class IgniteDatastoreProvider extends BaseDatastoreProvider
 	 * @param keyMetadata
 	 * @return
 	 */
+	@SuppressWarnings("unchecked")
 	private String findKeyType(EntityKeyMetadata keyMetadata) {
 		String result = compositeIdTypes.get( keyMetadata.getTable() );
 		if ( result == null ) {
 			String cacheType = getEntityTypeName( keyMetadata.getTable() );
 			IgniteCache<Object, BinaryObject> cache = getEntityCache( keyMetadata );
-			CacheConfiguration cacheConfig = cache.getConfiguration( CacheConfiguration.class );
+			CacheConfiguration<?,?> cacheConfig = cache.getConfiguration( CacheConfiguration.class );
 			if ( cacheConfig.getQueryEntities() != null ) {
 				for ( QueryEntity qe : (Collection<QueryEntity>) cacheConfig.getQueryEntities() ) {
 					if ( qe.getValueType() != null && cacheType.equalsIgnoreCase( qe.getValueType() ) ) {
@@ -435,16 +460,11 @@ public class IgniteDatastoreProvider extends BaseDatastoreProvider
 				}
 			}
 			if ( result == null ) {
-				if ( cacheConfig.getTypeMetadata() != null ) {
-					for ( CacheTypeMetadata ctm : (Collection<CacheTypeMetadata>) cacheConfig.getTypeMetadata() ) {
-						if ( ctm.getValueType() != null && cacheType.equalsIgnoreCase( ctm.getValueType() ) ) {
-							result = ctm.getKeyType();
-							break;
-						}
-					}
+				if ( cacheConfig.getKeyType() != null ) {
+					result = cacheConfig.getKeyType().getSimpleName();
 				}
 				if ( result == null ) {
-					//if nothing found we use id field name
+					// if nothing found we use id field name
 					result = StringHelper.stringBeforePoint( keyMetadata.getColumnNames()[0] );
 					result = StringUtils.capitalize( result );
 				}
@@ -456,6 +476,9 @@ public class IgniteDatastoreProvider extends BaseDatastoreProvider
 
 	/**
 	 * Get the entity type from the metadata
+	 *
+	 * @param entity metadata
+	 * @return type
 	 */
 	public String getEntityTypeName(String entity) {
 		return StringHelper.stringAfterPoint( entity ) ;
@@ -469,5 +492,17 @@ public class IgniteDatastoreProvider extends BaseDatastoreProvider
 	 */
 	private String getEntityCacheName(String entity) {
 		return StringHelper.stringBeforePoint( entity ) ;
+	}
+
+	@Override
+	public boolean allowsTransactionEmulation() {
+		boolean allowsTransactionEmulation = propertyReader.property( IgniteProperties.IGNITE_ALLOWS_TRANSACTION_EMULATION, Boolean.class )
+				.withDefault( Boolean.FALSE ).getValue();
+		return allowsTransactionEmulation;
+	}
+
+	@Override
+	public TransactionCoordinatorBuilder getTransactionCoordinatorBuilder(TransactionCoordinatorBuilder coordinatorBuilder) {
+		return new IgniteTransactionCoordinatorBuilder( coordinatorBuilder, this );
 	}
 }

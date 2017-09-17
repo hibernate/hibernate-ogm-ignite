@@ -25,8 +25,6 @@ public class IgniteCalendarType extends AbstractGenericBasicType<Calendar> {
 
 	public static final IgniteCalendarType INSTANCE = new IgniteCalendarType();
 
-	private static final long serialVersionUID = -2936715569041031331L;
-
 	public IgniteCalendarType() {
 		super( new IgniteGridTypeDescriptor( Date.class ), CalendarTypeDescriptor.INSTANCE );
 	}

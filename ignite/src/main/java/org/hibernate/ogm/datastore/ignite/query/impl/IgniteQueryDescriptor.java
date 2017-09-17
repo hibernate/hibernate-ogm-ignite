@@ -16,18 +16,16 @@ import java.util.List;
  */
 public class IgniteQueryDescriptor implements Serializable {
 
-	private static final long serialVersionUID = 8197979441369153954L;
-
 	private final String sql;
 	private final List<Object> indexedParameters;
+	private final String table;
 	private final boolean hasScalar;
-//	private final List<Return> customQueryReturns;
-//	private final Set<String> querySpaces;
 
-	public IgniteQueryDescriptor(String sql, List<Object> indexedParameters, boolean hasScalar) {
+	public IgniteQueryDescriptor(String sql, String table, List<Object> indexedParameters, boolean hasScalar) {
 		this.sql = sql;
 		this.indexedParameters = indexedParameters;
 		this.hasScalar = hasScalar;
+		this.table = table;
 	}
 
 	public List<Object> getIndexedParameters() {
@@ -42,4 +40,7 @@ public class IgniteQueryDescriptor implements Serializable {
 		return hasScalar;
 	}
 
+	public String getTable() {
+		return table;
+	}
 }

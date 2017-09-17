@@ -108,11 +108,6 @@
             <scope>test</scope>
         </dependency>
         <dependency>
-            <groupId>org.apache.ignite</groupId>
-            <artifactId>ignite-slf4j</artifactId>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
             <groupId>org.hibernate</groupId>
             <artifactId>hibernate-search-orm</artifactId>
             <scope>test</scope>
@@ -134,7 +129,23 @@
         </dependency>
         <dependency>
             <groupId>org.apache.ignite</groupId>
+            <artifactId>ignite-slf4j</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.ignite</groupId>
             <artifactId>ignite-indexing</artifactId>
+            <exclusions>
+                <exclusion>
+                    <groupId>com.h2database</groupId>
+                    <artifactId>h2</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>com.h2database</groupId>
+            <artifactId>h2</artifactId>
+            <version>${h2Version}</version>
         </dependency>
     </dependencies>
 
@@ -149,8 +160,8 @@
                 <artifactId>maven-surefire-plugin</artifactId>
                 <configuration>
                     <forkCount>1</forkCount>
-					<reuseForks>true</reuseForks>
-					<threadCount>1</threadCount>
+                    <reuseForks>true</reuseForks>
+                    <threadCount>1</threadCount>
                     <skipExec>${skipUnitTests}</skipExec>
                     <enableAssertions>false</enableAssertions>
                     <dependenciesToScan>
@@ -171,7 +182,7 @@
                 <configuration>
                     <signature>
                         <groupId>org.codehaus.mojo.signature</groupId>
-                        <artifactId>java17</artifactId>
+                        <artifactId>java18</artifactId>
                         <version>1.0</version>
                     </signature>
                 </configuration>
