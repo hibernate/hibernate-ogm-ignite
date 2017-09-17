@@ -319,8 +319,7 @@ public class IgniteDialect extends BaseGridDialect implements GridDialect, Query
 						// it OneToOne or OneToMany. in this way, we need add some association id to entity.
 						// In this case, AssocitionCache contains entities not associations
 						EntityKey currentEntityKey = getEntityKey( associationKey, op.getKey() );
-						// @todo is it correct for composite keys in Ignite?
-						putBo = associationCache.get( currentEntityKey.getColumnValues()[0] );
+						putBo = associationCache.get( provider.createKeyObject( currentEntityKey ) );
 					}
 					else {
 						putBo = previousId != null ? associationCache.get( previousId ) : null;
