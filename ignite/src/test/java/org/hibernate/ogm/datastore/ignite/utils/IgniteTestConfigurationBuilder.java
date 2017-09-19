@@ -186,7 +186,7 @@ public class IgniteTestConfigurationBuilder implements IgniteConfigurationBuilde
 		return new TestCacheConfigBuilder( name );
 	}
 
-	private class TestCacheConfigBuilder implements Serializable {
+	private class TestCacheConfigBuilder {
 
 		private CacheConfiguration cacheConfig;
 		private QueryEntity queryEntity;
