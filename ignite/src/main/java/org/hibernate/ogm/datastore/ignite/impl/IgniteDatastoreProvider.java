@@ -13,7 +13,6 @@ import java.util.Map;
 import java.util.UUID;
 
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.ignite.Ignite;
 import org.apache.ignite.IgniteAtomicSequence;
 import org.apache.ignite.IgniteCache;
@@ -24,7 +23,6 @@ import org.apache.ignite.IgniteState;
 import org.apache.ignite.Ignition;
 import org.apache.ignite.binary.BinaryObject;
 import org.apache.ignite.binary.BinaryObjectBuilder;
-import org.apache.ignite.cache.CacheTypeMetadata;
 import org.apache.ignite.cache.QueryEntity;
 import org.apache.ignite.cache.query.SqlFieldsQuery;
 import org.apache.ignite.configuration.CacheConfiguration;
@@ -186,7 +184,7 @@ public class IgniteDatastoreProvider extends BaseDatastoreProvider
 				}
 				catch (IgniteIllegalStateException iise) {
 					// not found, then start
-					conf.setGridName( gridName );
+					conf.setIgniteInstanceName( gridName );
 					cacheManager = (IgniteEx) Ignition.start( conf );
 					stopOnExit = true;
 				}
@@ -241,8 +239,8 @@ public class IgniteDatastoreProvider extends BaseDatastoreProvider
 		}
 		else {
 			IgniteConfiguration igniteConfiguration = createIgniteConfiguration();
-			if ( StringUtils.isNotEmpty( igniteConfiguration.getGridName() ) ) {
-				name = igniteConfiguration.getGridName();
+			if ( StringUtils.isNotEmpty( igniteConfiguration.getIgniteInstanceName() ) ) {
+				name = igniteConfiguration.getIgniteInstanceName();
 			}
 			else if ( config.getUrl() != null ) {
 				name = config.getUrl().getPath();
@@ -346,13 +344,10 @@ public class IgniteDatastoreProvider extends BaseDatastoreProvider
 			result = toValidKeyObject( key.getColumnValues()[0], cacheConfig.getKeyType() );
 		}
 		else {
-			HashCodeBuilder hashBuilder = new HashCodeBuilder();
 			BinaryObjectBuilder builder = createBinaryObjectBuilder( findKeyType( key.getMetadata() ) );
 			for ( int i = 0; i < key.getColumnNames().length; i++ ) {
 				builder.setField( StringHelper.stringAfterPoint( key.getColumnNames()[i] ), key.getColumnValues()[i] );
-				hashBuilder.append( key.getColumnValues()[i] );
 			}
-			builder.hashCode( hashBuilder.toHashCode() );
 			result = builder.build();
 		}
 		return result;
@@ -385,13 +380,10 @@ public class IgniteDatastoreProvider extends BaseDatastoreProvider
 				result = rowKey.getColumnValue( associationKeyColumns[0] );
 			}
 			else {
-				HashCodeBuilder hashBuilder = new HashCodeBuilder();
 				BinaryObjectBuilder builder = createBinaryObjectBuilder( findKeyType( keyMetadata.getAssociatedEntityKeyMetadata().getEntityKeyMetadata() ) );
 				for ( int i = 0; i < associationKeyColumns.length; i++ ) {
 					builder.setField( StringHelper.stringAfterPoint( associationKeyColumns[i] ), rowKey.getColumnValue( associationKeyColumns[i] ) );
-					hashBuilder.append( rowKey.getColumnValue( associationKeyColumns[i] ) );
 				}
-				builder.hashCode( hashBuilder.toHashCode() );
 				result = builder.build();
 			}
 		}
@@ -435,16 +427,11 @@ public class IgniteDatastoreProvider extends BaseDatastoreProvider
 				}
 			}
 			if ( result == null ) {
-				if ( cacheConfig.getTypeMetadata() != null ) {
-					for ( CacheTypeMetadata ctm : (Collection<CacheTypeMetadata>) cacheConfig.getTypeMetadata() ) {
-						if ( ctm.getValueType() != null && cacheType.equalsIgnoreCase( ctm.getValueType() ) ) {
-							result = ctm.getKeyType();
-							break;
-						}
-					}
+				if ( cacheConfig.getKeyType() != null ) {
+					result = cacheConfig.getKeyType().getSimpleName();
 				}
 				if ( result == null ) {
-					//if nothing found we use id field name
+					// if nothing found we use id field name
 					result = StringHelper.stringBeforePoint( keyMetadata.getColumnNames()[0] );
 					result = StringUtils.capitalize( result );
 				}
