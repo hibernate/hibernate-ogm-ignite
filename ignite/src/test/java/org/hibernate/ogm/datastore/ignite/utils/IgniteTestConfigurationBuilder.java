@@ -10,9 +10,7 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import org.apache.ignite.IgniteCheckedException;
 import org.apache.ignite.IgniteSystemProperties;
@@ -29,7 +27,6 @@ import org.apache.ignite.configuration.CacheConfiguration;
 import org.apache.ignite.configuration.IgniteConfiguration;
 import org.apache.ignite.configuration.TransactionConfiguration;
 import org.apache.ignite.internal.IgnitionEx;
-import org.apache.ignite.internal.binary.BinaryMarshaller;
 import org.apache.ignite.logger.slf4j.Slf4jLogger;
 import org.apache.ignite.transactions.TransactionConcurrency;
 import org.apache.ignite.transactions.TransactionIsolation;
@@ -71,7 +68,6 @@ public class IgniteTestConfigurationBuilder implements IgniteConfigurationBuilde
 		config.setLocalHost( "127.0.0.1" );
 		config.setPeerClassLoadingEnabled( true );
 		config.setClientMode( false );
-		config.setMarshaller( new BinaryMarshaller() ) ;
 		BinaryConfiguration binaryConfiguration = new BinaryConfiguration();
 		binaryConfiguration.setCompactFooter( false );		// it is necessary only for embedded collections (@ElementCollection)
 		config.setBinaryConfiguration( binaryConfiguration );
@@ -193,7 +189,7 @@ public class IgniteTestConfigurationBuilder implements IgniteConfigurationBuilde
 
 		private CacheConfiguration cacheConfig;
 		private QueryEntity queryEntity;
-		private Map<String, QueryIndex> indexes;
+		private List<QueryIndex> indexes;
 		private Class<?> keyType = String.class;
 		private String keyTypeName = null;
 		private boolean forceQueryEntity = false;
@@ -203,7 +199,7 @@ public class IgniteTestConfigurationBuilder implements IgniteConfigurationBuilde
 			cacheConfig.setAtomicityMode( CacheAtomicityMode.TRANSACTIONAL );
 			cacheConfig.setCacheMode( CacheMode.PARTITIONED );
 			cacheConfig.setWriteSynchronizationMode( CacheWriteSynchronizationMode.FULL_SYNC );
-			cacheConfig.setStartSize( 10 );
+			//cacheConfig.setStartSize( 10 );
 			cacheConfig.setBackups( 0 );
 			cacheConfig.setAffinity( new RendezvousAffinityFunction( false, 2 ) );
 			cacheConfig.setCopyOnRead( false );
@@ -211,7 +207,7 @@ public class IgniteTestConfigurationBuilder implements IgniteConfigurationBuilde
 
 			queryEntity = new QueryEntity();
 			queryEntity.setValueType( name );
-			indexes = new HashMap<>();
+			indexes = new ArrayList<>();
 		}
 
 		public TestCacheConfigBuilder appendField( String fieldName, Class<?> fieldType ) {
@@ -221,7 +217,7 @@ public class IgniteTestConfigurationBuilder implements IgniteConfigurationBuilde
 
 		public TestCacheConfigBuilder appendIndex( String fieldName, Class<?> fieldType ) {
 			queryEntity.addQueryField( fieldName, fieldType.getName(), null );
-			indexes.put( fieldName, new QueryIndex( fieldName, QueryIndexType.SORTED ) );
+			indexes.add( new QueryIndex( fieldName, QueryIndexType.SORTED ) );
 			return this;
 		}
 
@@ -245,7 +241,7 @@ public class IgniteTestConfigurationBuilder implements IgniteConfigurationBuilde
 		public CacheConfiguration<String, BinaryObject> build() {
 			if ( forceQueryEntity || !indexes.isEmpty() || !queryEntity.getFields().isEmpty() ) {
 				queryEntity.setKeyType( keyTypeName != null ? keyTypeName : keyType.getName() );
-				queryEntity.setIndexes( indexes.values() );
+				queryEntity.setIndexes( indexes );
 				cacheConfig.setQueryEntities( Arrays.asList( queryEntity ) );
 			}
 			if ( keyTypeName == null ) {
