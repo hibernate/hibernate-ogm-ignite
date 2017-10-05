@@ -15,6 +15,8 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 
+import javax.persistence.EntityManager;
+
 import org.apache.ignite.Ignite;
 import org.apache.ignite.IgniteCache;
 import org.apache.ignite.Ignition;
@@ -24,6 +26,7 @@ import org.apache.ignite.cache.query.SqlFieldsQuery;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.engine.spi.SessionFactoryImplementor;
+import org.hibernate.ogm.backendtck.jpa.Poem;
 import org.hibernate.ogm.datastore.document.options.AssociationStorageType;
 import org.hibernate.ogm.datastore.ignite.IgniteDialect;
 import org.hibernate.ogm.datastore.ignite.impl.IgniteDatastoreProvider;
@@ -60,6 +63,29 @@ public class IgniteTestHelper implements GridDialectTestHelper {
 			}
 		}
 		return entityCount;
+	}
+
+	public static <K> Map<K, BinaryObject> find(EntityManager em, Class<?> class1, @SuppressWarnings("unchecked") K... ids) {
+		SessionFactory sessionFactory = em.getEntityManagerFactory().unwrap( SessionFactory.class );
+		return find( sessionFactory, class1, ids );
+	}
+
+	public static <K> Map<K, BinaryObject> find(Session session, Class<?> class1, @SuppressWarnings("unchecked") K... ids) {
+		SessionFactory sessionFactory = session.getSessionFactory();
+		return find( sessionFactory, class1, ids );
+	}
+
+	public static <K> Map<K, BinaryObject> find(SessionFactory sessionFactory, Class<?> class1, K... ids) {
+		OgmEntityPersister entityPersister = (OgmEntityPersister) ( (SessionFactoryImplementor) sessionFactory ).getEntityPersister( Poem.class.getName() );
+		IgniteCache<K, BinaryObject> entityCache = getEntityCache( sessionFactory, entityPersister.getEntityKeyMetadata() );
+		Map<K, BinaryObject> missingIds = new HashMap<>();
+		for ( K id : ids ) {
+			BinaryObject binaryObject = entityCache.get( id );
+			if ( binaryObject != null ) {
+				missingIds.put( id, binaryObject );
+			}
+		}
+		return missingIds;
 	}
 
 	@Override
@@ -114,7 +140,6 @@ public class IgniteTestHelper implements GridDialectTestHelper {
 		Map<String, Object> result = new HashMap<>();
 		BinaryObject po = cache.get( cacheKey );
 
-		IgniteDialect igniteDialect = (IgniteDialect) sessionFactory.getServiceRegistry().getService( GridDialect.class );
 		TupleSnapshot snapshot = new IgniteTupleSnapshot( cacheKey, po, key.getMetadata() );
 		for ( String fieldName : snapshot.getColumnNames() ) {
 			result.put( fieldName, snapshot.get( fieldName ) );
@@ -150,7 +175,7 @@ public class IgniteTestHelper implements GridDialectTestHelper {
 		return new IgniteDialect( (IgniteDatastoreProvider) datastoreProvider );
 	}
 
-	public static IgniteCache<Object, BinaryObject> getEntityCache(SessionFactory sessionFactory, EntityKeyMetadata entityKeyMetadata) {
+	public static <K> IgniteCache<K, BinaryObject> getEntityCache(SessionFactory sessionFactory, EntityKeyMetadata entityKeyMetadata) {
 		IgniteDatastoreProvider castProvider = getProvider( sessionFactory );
 		return castProvider.getEntityCache( entityKeyMetadata );
 	}
@@ -186,4 +211,5 @@ public class IgniteTestHelper implements GridDialectTestHelper {
 	@Override
 	public void prepareDatabase(SessionFactory arg0) {
 	}
+
 }

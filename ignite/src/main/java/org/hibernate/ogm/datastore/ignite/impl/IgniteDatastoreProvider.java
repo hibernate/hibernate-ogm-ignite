@@ -93,13 +93,13 @@ public class IgniteDatastoreProvider extends BaseDatastoreProvider
 		return getCache( entityCacheName, true );
 	}
 
-	public IgniteCache<Object, BinaryObject> getEntityCache(EntityKeyMetadata keyMetadata) {
+	public <K> IgniteCache<K, BinaryObject> getEntityCache(EntityKeyMetadata keyMetadata) {
 		String entityCacheName = getEntityCacheName( keyMetadata.getTable() );
 		return getCache( entityCacheName, true );
 	}
 
-	private <K, T> IgniteCache<K, T> getCache(String entityCacheName, boolean keepBinary) {
-		IgniteCache<K, T> cache = null;
+	private <K, V> IgniteCache<K, V> getCache(String entityCacheName, boolean keepBinary) {
+		IgniteCache<K, V> cache = null;
 		try {
 			cache = cacheManager.cache( entityCacheName );
 		}
