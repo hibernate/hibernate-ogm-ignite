@@ -9,9 +9,11 @@ package org.hibernate.ogm.datastore.ignite.impl;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 
 import org.apache.ignite.cache.CacheAtomicityMode;
 import org.apache.ignite.cache.QueryEntity;
@@ -36,6 +38,11 @@ import org.hibernate.ogm.model.key.spi.AssociationKind;
 import org.hibernate.ogm.model.key.spi.EntityKeyMetadata;
 import org.hibernate.ogm.model.key.spi.IdSourceKeyMetadata;
 import org.hibernate.persister.entity.EntityPersister;
+import org.hibernate.type.CustomType;
+import org.hibernate.type.EnumType;
+import org.hibernate.type.Type;
+import org.hibernate.type.YesNoType;
+import org.hibernate.usertype.UserType;
 
 /**
  * @author Victor Kadachigov
@@ -91,7 +98,7 @@ public class IgniteCacheInitializer extends BaseSchemaDefiner {
 	private void initializeAssociations(SchemaDefinitionContext context, IgniteDatastoreProvider igniteDatastoreProvider) {
 
 		for ( AssociationKeyMetadata associationKeyMetadata : context.getAllAssociationKeyMetadata() ) {
-			log.debugf( "initializeAssociations. associationKeyMetadata: %s ",associationKeyMetadata );
+			log.debugf( "initializeAssociations. associationKeyMetadata: %s ", associationKeyMetadata );
 			if ( associationKeyMetadata.getAssociationKind() != AssociationKind.EMBEDDED_COLLECTION
 					&& IgniteAssociationSnapshot.isThirdTableAssociation( associationKeyMetadata ) ) {
 				try {
@@ -118,7 +125,7 @@ public class IgniteCacheInitializer extends BaseSchemaDefiner {
 
 
 	private void initializeIdSources(SchemaDefinitionContext context, IgniteDatastoreProvider igniteDatastoreProvider) {
-		//generate tables
+		// generate tables
 		for ( IdSourceKeyMetadata idSourceKeyMetadata : context.getAllIdSourceKeyMetadata() ) {
 			if ( idSourceKeyMetadata.getType() == IdSourceKeyMetadata.IdSourceType.TABLE ) {
 				try {
@@ -135,16 +142,20 @@ public class IgniteCacheInitializer extends BaseSchemaDefiner {
 					throw log.unableToInitializeCache( idSourceKeyMetadata.getName(), ex );
 				}
 			}
-			else if ( idSourceKeyMetadata.getType() == IdSourceKeyMetadata.IdSourceType.SEQUENCE ) {
-				if ( idSourceKeyMetadata.getName() != null ) {
-					igniteDatastoreProvider.atomicSequence( idSourceKeyMetadata.getName(),  1, true );
-				}
-			}
 		}
-		//generate sequences
+		Set<String> generatedSequences = new HashSet<>();
+		// generate sequences
 		for ( Namespace namespace : context.getDatabase().getNamespaces() ) {
 			for ( Sequence sequence : namespace.getSequences() ) {
-				igniteDatastoreProvider.atomicSequence( sequence.getName().getSequenceName().getCanonicalName(),  sequence.getInitialValue(), true );
+				generatedSequences.add( sequence.getName().getSequenceName().getText() );
+				igniteDatastoreProvider.atomicSequence( sequence.getName().getSequenceName().getText(), sequence.getInitialValue(), true );
+			}
+		}
+		for ( IdSourceKeyMetadata idSourceKeyMetadata : context.getAllIdSourceKeyMetadata() ) {
+			if ( idSourceKeyMetadata.getType() == IdSourceKeyMetadata.IdSourceType.SEQUENCE ) {
+				if ( idSourceKeyMetadata.getName() != null && !generatedSequences.contains( idSourceKeyMetadata.getName() ) ) {
+					igniteDatastoreProvider.atomicSequence( idSourceKeyMetadata.getName(), 1, true );
+				}
 			}
 		}
 	}
@@ -212,6 +223,7 @@ public class IgniteCacheInitializer extends BaseSchemaDefiner {
 				appendIndex( queryEntity, associationKeyMetadata, context );
 			}
 		}
+		log.debugf( "queryEntity: %s", queryEntity );
 		cacheConfiguration.setQueryEntities( Arrays.asList( queryEntity ) );
 
 		return cacheConfiguration;
@@ -223,15 +235,32 @@ public class IgniteCacheInitializer extends BaseSchemaDefiner {
 		Optional<Table> tableOptional = namespace.getTables().stream().filter( currentTable -> currentTable.getName().equals( tableName ) ).findFirst();
 		if ( tableOptional.isPresent() ) {
 			Table table = tableOptional.get();
-			for ( Iterator<Column> columnIterator = table.getColumnIterator(); columnIterator.hasNext();) {
+			for ( Iterator<Column> columnIterator = table.getColumnIterator(); columnIterator.hasNext(); ) {
 				Column currentColumn = columnIterator.next();
+				Type valueType = currentColumn.getValue().getType();
 				Value value = currentColumn.getValue();
-				if ( value.getClass() == SimpleValue.class ) {
+				if ( valueType instanceof CustomType ) {
+					CustomType type = (CustomType) currentColumn.getValue().getType();
+					UserType userType = type.getUserType();
+					if ( userType instanceof EnumType ) {
+						EnumType enumType = (EnumType) type.getUserType();
+						if ( enumType.isOrdinal() ) {
+							queryEntity.addQueryField( currentColumn.getName(), Integer.class.getName(), null );
+						}
+						else {
+							queryEntity.addQueryField( currentColumn.getName(), String.class.getName(), null );
+						}
+					}
+				}
+				else if ( valueType instanceof YesNoType ) {
+					queryEntity.addQueryField( currentColumn.getName(), String.class.getName(), null );
+				}
+				else if ( value.getClass() == SimpleValue.class ) {
 					// it is simple type. add the field
 					SimpleValue simpleValue = (SimpleValue) value;
 					Class returnValue = simpleValue.getType().getReturnedClass();
-					returnValue = h2TypeMapping.getOrDefault( returnValue , returnValue  );
-					queryEntity.addQueryField( currentColumn.getName(),returnValue.getName(),null );
+					returnValue = h2TypeMapping.getOrDefault( returnValue, returnValue );
+					queryEntity.addQueryField( currentColumn.getName(), returnValue.getName(), null );
 				}
 			}
 		}

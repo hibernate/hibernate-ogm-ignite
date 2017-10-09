@@ -76,7 +76,11 @@ public class IgniteQueryRendererDelegate extends SingleEntityQueryRendererDelega
 	}
 
 	private void select(StringBuilder queryBuilder) {
-		queryBuilder.append( "SELECT _KEY, _VAL " );
+		String tableAlias = propertyHelper.findAliasForType( targetTypeName );
+		if ( tableAlias.trim().length() > 0 ) {
+			tableAlias = tableAlias + ".";
+		}
+		queryBuilder.append( String.format( "SELECT %s_KEY, %s_VAL ", tableAlias, tableAlias ) );
 	}
 
 	private void from(StringBuilder queryBuilder) {
