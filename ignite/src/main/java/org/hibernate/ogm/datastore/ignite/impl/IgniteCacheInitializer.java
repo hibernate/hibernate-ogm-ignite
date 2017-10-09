@@ -7,13 +7,27 @@
 package org.hibernate.ogm.datastore.ignite.impl;
 
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
 
 import org.apache.ignite.cache.CacheAtomicityMode;
 import org.apache.ignite.cache.QueryEntity;
 import org.apache.ignite.cache.QueryIndex;
 import org.apache.ignite.cache.QueryIndexType;
 import org.apache.ignite.configuration.CacheConfiguration;
+import org.apache.ignite.internal.processors.query.QueryUtils;
 import org.hibernate.HibernateException;
+import org.hibernate.boot.model.relational.Namespace;
+import org.hibernate.boot.model.relational.Sequence;
+import org.hibernate.mapping.Column;
+import org.hibernate.mapping.SimpleValue;
+import org.hibernate.mapping.Table;
+import org.hibernate.mapping.Value;
 import org.hibernate.ogm.datastore.ignite.logging.impl.Log;
 import org.hibernate.ogm.datastore.ignite.logging.impl.LoggerFactory;
 import org.hibernate.ogm.datastore.ignite.util.StringHelper;
@@ -23,8 +37,12 @@ import org.hibernate.ogm.model.key.spi.AssociationKeyMetadata;
 import org.hibernate.ogm.model.key.spi.AssociationKind;
 import org.hibernate.ogm.model.key.spi.EntityKeyMetadata;
 import org.hibernate.ogm.model.key.spi.IdSourceKeyMetadata;
-import org.hibernate.ogm.model.key.spi.IdSourceKeyMetadata.IdSourceType;
 import org.hibernate.persister.entity.EntityPersister;
+import org.hibernate.type.CustomType;
+import org.hibernate.type.EnumType;
+import org.hibernate.type.Type;
+import org.hibernate.type.YesNoType;
+import org.hibernate.usertype.UserType;
 
 /**
  * @author Victor Kadachigov
@@ -33,6 +51,15 @@ public class IgniteCacheInitializer extends BaseSchemaDefiner {
 
 	private static final long serialVersionUID = -8564869898957031491L;
 	private static final Log log = LoggerFactory.getLogger();
+	private static Map<Class<?>, Class<?>> h2TypeMapping;
+
+	static {
+		Map<Class<?>, Class<?>> map = new HashMap<>(  );
+		map.put( Character.class, String.class );
+
+		h2TypeMapping = Collections.unmodifiableMap( map );
+	}
+
 
 	@Override
 	public void initializeSchema(SchemaDefinitionContext context) {
@@ -45,33 +72,37 @@ public class IgniteCacheInitializer extends BaseSchemaDefiner {
 			initializeIdSources( context, igniteDatastoreProvider );
 		}
 		else {
-			log.unexpectedDatastoreProvider( provider.getClass(), IgniteDatastoreProvider.class );
+			throw log.unexpectedDatastoreProvider( provider.getClass(), IgniteDatastoreProvider.class );
 		}
 	}
 
-	private void initializeEntities(SchemaDefinitionContext context, IgniteDatastoreProvider igniteDatastoreProvider) {
+	private void initializeEntities(SchemaDefinitionContext context, final IgniteDatastoreProvider igniteDatastoreProvider) {
+
 		for ( EntityKeyMetadata entityKeyMetadata : context.getAllEntityKeyMetadata() ) {
 			try {
 				try {
 					igniteDatastoreProvider.getEntityCache( entityKeyMetadata );
 				}
 				catch (HibernateException ex) {
-					CacheConfiguration config = createCacheConfiguration( entityKeyMetadata, context );
+					CacheConfiguration config = createEntityCacheConfiguration( entityKeyMetadata, context );
 					igniteDatastoreProvider.initializeCache( config );
 				}
 			}
 			catch (Exception ex) {
 				// just write error to log
-				log.warn( log.unableToInitializeCache( entityKeyMetadata.getTable() ), ex );
+				throw log.unableToInitializeCache( entityKeyMetadata.getTable(), ex );
 			}
 		}
 	}
 
 	private void initializeAssociations(SchemaDefinitionContext context, IgniteDatastoreProvider igniteDatastoreProvider) {
+
 		for ( AssociationKeyMetadata associationKeyMetadata : context.getAllAssociationKeyMetadata() ) {
+			log.debugf( "initializeAssociations. associationKeyMetadata: %s ", associationKeyMetadata );
 			if ( associationKeyMetadata.getAssociationKind() != AssociationKind.EMBEDDED_COLLECTION
 					&& IgniteAssociationSnapshot.isThirdTableAssociation( associationKeyMetadata ) ) {
 				try {
+
 					try {
 						igniteDatastoreProvider.getAssociationCache( associationKeyMetadata );
 					}
@@ -84,16 +115,19 @@ public class IgniteCacheInitializer extends BaseSchemaDefiner {
 				}
 				catch (Exception ex) {
 					// just write error to log
-					log.warn( log.unableToInitializeCache( associationKeyMetadata.getTable() ), ex );
+					throw log.unableToInitializeCache( associationKeyMetadata.getTable(), ex );
 				}
 
 			}
 		}
 	}
 
+
+
 	private void initializeIdSources(SchemaDefinitionContext context, IgniteDatastoreProvider igniteDatastoreProvider) {
+		// generate tables
 		for ( IdSourceKeyMetadata idSourceKeyMetadata : context.getAllIdSourceKeyMetadata() ) {
-			if ( idSourceKeyMetadata.getType() == IdSourceType.TABLE ) {
+			if ( idSourceKeyMetadata.getType() == IdSourceKeyMetadata.IdSourceType.TABLE ) {
 				try {
 					try {
 						igniteDatastoreProvider.getIdSourceCache( idSourceKeyMetadata );
@@ -105,7 +139,22 @@ public class IgniteCacheInitializer extends BaseSchemaDefiner {
 				}
 				catch (Exception ex) {
 					// just write error to log
-					log.warn( log.unableToInitializeCache( idSourceKeyMetadata.getName() ), ex );
+					throw log.unableToInitializeCache( idSourceKeyMetadata.getName(), ex );
+				}
+			}
+		}
+		Set<String> generatedSequences = new HashSet<>();
+		// generate sequences
+		for ( Namespace namespace : context.getDatabase().getNamespaces() ) {
+			for ( Sequence sequence : namespace.getSequences() ) {
+				generatedSequences.add( sequence.getName().getSequenceName().getText() );
+				igniteDatastoreProvider.atomicSequence( sequence.getName().getSequenceName().getText(), sequence.getInitialValue(), true );
+			}
+		}
+		for ( IdSourceKeyMetadata idSourceKeyMetadata : context.getAllIdSourceKeyMetadata() ) {
+			if ( idSourceKeyMetadata.getType() == IdSourceKeyMetadata.IdSourceType.SEQUENCE ) {
+				if ( idSourceKeyMetadata.getName() != null && !generatedSequences.contains( idSourceKeyMetadata.getName() ) ) {
+					igniteDatastoreProvider.atomicSequence( idSourceKeyMetadata.getName(), 1, true );
 				}
 			}
 		}
@@ -119,15 +168,11 @@ public class IgniteCacheInitializer extends BaseSchemaDefiner {
 
 	private CacheConfiguration createCacheConfiguration(AssociationKeyMetadata associationKeyMetadata, SchemaDefinitionContext context) {
 
-		if ( associationKeyMetadata.getColumnNames().length > 1 ) {
-			//composite id. not yet implemented
-			return null;
-		}
-
 		CacheConfiguration result = new CacheConfiguration();
 		result.setName( StringHelper.stringBeforePoint( associationKeyMetadata.getTable() ) );
 
 		QueryEntity queryEntity = new QueryEntity();
+		queryEntity.setTableName( associationKeyMetadata.getTable() );
 		queryEntity.setValueType( StringHelper.stringAfterPoint( associationKeyMetadata.getTable() ) );
 		appendIndex( queryEntity, associationKeyMetadata, context );
 
@@ -138,32 +183,39 @@ public class IgniteCacheInitializer extends BaseSchemaDefiner {
 
 	private void appendIndex(QueryEntity queryEntity, AssociationKeyMetadata associationKeyMetadata, SchemaDefinitionContext context) {
 
-		if ( associationKeyMetadata.getColumnNames().length > 1 ) {
-			//composite id. not yet implemented
-			return;
+		for ( String idFieldName : associationKeyMetadata.getRowKeyColumnNames() ) {
+			queryEntity.addQueryField( generateIndexName( idFieldName ), String.class.getName(),null );
+			queryEntity.setIndexes( Arrays.asList( new QueryIndex( generateIndexName( idFieldName ), QueryIndexType.SORTED  ) ) );
 		}
-
-		String idFieldName = associationKeyMetadata.getColumnNames()[0];
-		String idClassName = getEntityIdClassName( associationKeyMetadata.getEntityKeyMetadata().getTable(), context );
-		queryEntity.addQueryField( idFieldName, idClassName, null );
-		queryEntity.setIndexes( Arrays.asList( new QueryIndex( idFieldName, QueryIndexType.SORTED ) ) );
 	}
 
-	private String getEntityIdClassName( String table, SchemaDefinitionContext context ) {
+	private String generateIndexName(String fieldName) {
+		return fieldName.replace( '.','_' );
+	}
+
+	private Class getEntityIdClassName( String table, SchemaDefinitionContext context ) {
 		Class<?> entityClass = context.getTableEntityTypeMapping().get( table );
 		EntityPersister entityPersister = context.getSessionFactory().getEntityPersister( entityClass.getName() );
-		Class<?> idClass = entityPersister.getIdentifierType().getReturnedClass();
-		return idClass.getName();
+		return entityPersister.getIdentifierType().getReturnedClass();
 	}
 
-	private CacheConfiguration createCacheConfiguration(EntityKeyMetadata entityKeyMetadata, SchemaDefinitionContext context) {
-		CacheConfiguration result = new CacheConfiguration();
-		result.setName( StringHelper.stringBeforePoint( entityKeyMetadata.getTable() ) );
-		result.setAtomicityMode( CacheAtomicityMode.TRANSACTIONAL );
+	private CacheConfiguration<?,?> createEntityCacheConfiguration(EntityKeyMetadata entityKeyMetadata, SchemaDefinitionContext context) {
+
+		CacheConfiguration<?,?> cacheConfiguration = new CacheConfiguration<>();
+		cacheConfiguration.setStoreKeepBinary( true );
+		cacheConfiguration.setSqlSchema( QueryUtils.DFLT_SCHEMA );
+		cacheConfiguration.setBackups( 1 );
+
+		cacheConfiguration.setName( StringHelper.stringBeforePoint( entityKeyMetadata.getTable() ) );
+		cacheConfiguration.setAtomicityMode( CacheAtomicityMode.TRANSACTIONAL );
 
 		QueryEntity queryEntity = new QueryEntity();
-		queryEntity.setKeyType( getEntityIdClassName( entityKeyMetadata.getTable(), context ) );
+
+		queryEntity.setTableName( entityKeyMetadata.getTable() );
+		queryEntity.setKeyType( getEntityIdClassName( entityKeyMetadata.getTable(), context ).getSimpleName() );
 		queryEntity.setValueType( StringHelper.stringAfterPoint( entityKeyMetadata.getTable() ) );
+		addTableInfo( queryEntity, context, entityKeyMetadata.getTable() );
+
 		for ( AssociationKeyMetadata associationKeyMetadata : context.getAllAssociationKeyMetadata() ) {
 			if ( associationKeyMetadata.getAssociationKind() != AssociationKind.EMBEDDED_COLLECTION
 					&& associationKeyMetadata.getTable().equals( entityKeyMetadata.getTable() )
@@ -171,7 +223,47 @@ public class IgniteCacheInitializer extends BaseSchemaDefiner {
 				appendIndex( queryEntity, associationKeyMetadata, context );
 			}
 		}
-		result.setQueryEntities( Arrays.asList( queryEntity ) );
-		return result;
+		log.debugf( "queryEntity: %s", queryEntity );
+		cacheConfiguration.setQueryEntities( Arrays.asList( queryEntity ) );
+
+		return cacheConfiguration;
 	}
+
+	@SuppressWarnings("unchecked")
+	private void addTableInfo(QueryEntity queryEntity, SchemaDefinitionContext context, String tableName) {
+		Namespace namespace = context.getDatabase().getDefaultNamespace();
+		Optional<Table> tableOptional = namespace.getTables().stream().filter( currentTable -> currentTable.getName().equals( tableName ) ).findFirst();
+		if ( tableOptional.isPresent() ) {
+			Table table = tableOptional.get();
+			for ( Iterator<Column> columnIterator = table.getColumnIterator(); columnIterator.hasNext(); ) {
+				Column currentColumn = columnIterator.next();
+				Type valueType = currentColumn.getValue().getType();
+				Value value = currentColumn.getValue();
+				if ( valueType instanceof CustomType ) {
+					CustomType type = (CustomType) currentColumn.getValue().getType();
+					UserType userType = type.getUserType();
+					if ( userType instanceof EnumType ) {
+						EnumType enumType = (EnumType) type.getUserType();
+						if ( enumType.isOrdinal() ) {
+							queryEntity.addQueryField( currentColumn.getName(), Integer.class.getName(), null );
+						}
+						else {
+							queryEntity.addQueryField( currentColumn.getName(), String.class.getName(), null );
+						}
+					}
+				}
+				else if ( valueType instanceof YesNoType ) {
+					queryEntity.addQueryField( currentColumn.getName(), String.class.getName(), null );
+				}
+				else if ( value.getClass() == SimpleValue.class ) {
+					// it is simple type. add the field
+					SimpleValue simpleValue = (SimpleValue) value;
+					Class returnValue = simpleValue.getType().getReturnedClass();
+					returnValue = h2TypeMapping.getOrDefault( returnValue, returnValue );
+					queryEntity.addQueryField( currentColumn.getName(), returnValue.getName(), null );
+				}
+			}
+		}
+	}
+
 }

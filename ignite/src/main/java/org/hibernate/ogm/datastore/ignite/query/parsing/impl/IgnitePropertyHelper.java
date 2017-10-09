@@ -15,6 +15,8 @@ import java.util.Map;
 import org.hibernate.cfg.NotYetImplementedException;
 import org.hibernate.engine.spi.SessionFactoryImplementor;
 import org.hibernate.hql.ast.spi.EntityNamesResolver;
+import org.hibernate.ogm.datastore.ignite.logging.impl.Log;
+import org.hibernate.ogm.datastore.ignite.logging.impl.LoggerFactory;
 import org.hibernate.ogm.model.key.spi.EntityKeyMetadata;
 import org.hibernate.ogm.persister.impl.OgmCollectionPersister;
 import org.hibernate.ogm.persister.impl.OgmEntityPersister;
@@ -29,7 +31,7 @@ import org.hibernate.type.Type;
  * @author Victor Kadachigov
  */
 public class IgnitePropertyHelper extends ParserPropertyHelper {
-
+	private static final Log log = LoggerFactory.getLogger();
 	private final Map<String, String> aliasByEntityName = new HashMap<String, String>();
 
 	public IgnitePropertyHelper(SessionFactoryImplementor sessionFactory, EntityNamesResolver entityNames) {
@@ -121,24 +123,13 @@ public class IgnitePropertyHelper extends ParserPropertyHelper {
 		return getColumnName( getPersister( entityType ), propertyPathWithoutAlias );
 	}
 
-	public String getColumnName(Class<?> entityType, List<String> propertyName) {
-		OgmEntityPersister persister = (OgmEntityPersister) getSessionFactory().getEntityPersister( entityType.getName() );
-		return getColumnName( persister, propertyName );
-	}
 
 	private String getColumnName(OgmEntityPersister persister, List<String> propertyPathWithoutAlias) {
-		if ( isIdProperty( persister, propertyPathWithoutAlias ) ) {
-			return "_KEY"; // getColumn( persister, propertyPathWithoutAlias );
-		}
 		String columnName = getColumn( persister, propertyPathWithoutAlias );
 		if ( isNestedProperty( propertyPathWithoutAlias ) ) {
 			columnName = columnName.substring( columnName.lastIndexOf( '.' ) + 1, columnName.length() );
 		}
 		return columnName;
-	}
-
-	public boolean isIdProperty(String entityType, List<String> propertyPath) {
-		return isIdProperty( getPersister( entityType ), propertyPath );
 	}
 
 	/**
