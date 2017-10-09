@@ -47,4 +47,11 @@ org.hibernate.ogm.backendtck.associations.collection.unidirectional.CollectionUn
 org.hibernate.ogm.backendtck.associations.manytoone.ManyToOneTest#testUnidirectionalManyToOne
 org.hibernate.ogm.backendtck.jpa.JPAResourceLocalTest#testBootstrapAndCRUD
 
+//@todo support @Type for boolean
+org.hibernate.ogm.backendtck.queries.parameters.QueryWithParametersTest#canUseBooleanAsParameterForSimpleComparison
+//@todo support enumerations
+org.hibernate.ogm.backendtck.queries.parameters.QueryWithParametersTest#canUseEnumAsParameterForSimpleComparison
+org.hibernate.ogm.backendtck.queries.parameters.QueryWithParametersTest#canUseQueriesWithEnumAsParameterForInQuery
+
+
 

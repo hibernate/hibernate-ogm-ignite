@@ -155,9 +155,6 @@ public class IgniteDialect extends BaseGridDialect implements GridDialect, Query
 			builder = provider.createBinaryObjectBuilder( provider.getEntityTypeName( key.getMetadata().getTable() ) );
 		}
 		for ( String columnName : tuple.getColumnNames() ) {
-			if ( key.getMetadata().isKeyColumn( columnName ) ) {
-				continue;
-			}
 			Object value = tuple.get( columnName );
 			if ( value != null ) {
 				builder.setField( StringHelper.realColumnName( columnName ), value );

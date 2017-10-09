@@ -6,7 +6,7 @@
  */
 package org.hibernate.ogm.datastore.ignite.impl;
 
-import java.util.Collections;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Set;
 
@@ -29,7 +29,7 @@ public class IgniteAssociationSnapshot implements AssociationSnapshot {
 	private final Map<RowKey, IgniteAssociationRowSnapshot> rows;
 
 	public IgniteAssociationSnapshot(AssociationKey associationKey) {
-		rows = Collections.emptyMap();
+		rows = new LinkedHashMap<>(  );
 	}
 
 	public IgniteAssociationSnapshot(AssociationKey associationKey, Map<Object, BinaryObject> associationMap) {
