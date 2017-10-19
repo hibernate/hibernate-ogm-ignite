@@ -7,11 +7,8 @@
 package org.hibernate.ogm.datastore.ignite.impl;
 
 import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
-import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 
@@ -25,9 +22,7 @@ import org.hibernate.HibernateException;
 import org.hibernate.boot.model.relational.Namespace;
 import org.hibernate.boot.model.relational.Sequence;
 import org.hibernate.mapping.Column;
-import org.hibernate.mapping.SimpleValue;
 import org.hibernate.mapping.Table;
-import org.hibernate.mapping.Value;
 import org.hibernate.ogm.datastore.ignite.logging.impl.Log;
 import org.hibernate.ogm.datastore.ignite.logging.impl.LoggerFactory;
 import org.hibernate.ogm.datastore.ignite.util.StringHelper;
@@ -37,12 +32,14 @@ import org.hibernate.ogm.model.key.spi.AssociationKeyMetadata;
 import org.hibernate.ogm.model.key.spi.AssociationKind;
 import org.hibernate.ogm.model.key.spi.EntityKeyMetadata;
 import org.hibernate.ogm.model.key.spi.IdSourceKeyMetadata;
+import org.hibernate.ogm.type.impl.EnumType;
+import org.hibernate.ogm.type.impl.NumericBooleanType;
+import org.hibernate.ogm.type.impl.YesNoType;
+import org.hibernate.ogm.type.spi.GridType;
+import org.hibernate.ogm.type.spi.TypeTranslator;
 import org.hibernate.persister.entity.EntityPersister;
-import org.hibernate.type.CustomType;
-import org.hibernate.type.EnumType;
+import org.hibernate.service.ServiceRegistry;
 import org.hibernate.type.Type;
-import org.hibernate.type.YesNoType;
-import org.hibernate.usertype.UserType;
 
 /**
  * @author Victor Kadachigov
@@ -51,20 +48,17 @@ public class IgniteCacheInitializer extends BaseSchemaDefiner {
 
 	private static final long serialVersionUID = -8564869898957031491L;
 	private static final Log log = LoggerFactory.getLogger();
-	private static Map<Class<?>, Class<?>> h2TypeMapping;
 
-	static {
-		Map<Class<?>, Class<?>> map = new HashMap<>(  );
-		map.put( Character.class, String.class );
+	private static final String STRING_CLASS_NAME = String.class.getName();
+	private static final String INTEGER_CLASS_NAME = Integer.class.getName();
 
-		h2TypeMapping = Collections.unmodifiableMap( map );
-	}
-
+	private ServiceRegistry serviceRegistry;
 
 	@Override
 	public void initializeSchema(SchemaDefinitionContext context) {
 
-		DatastoreProvider provider = context.getSessionFactory().getServiceRegistry().getService( DatastoreProvider.class );
+		serviceRegistry = context.getSessionFactory().getServiceRegistry();
+		DatastoreProvider provider = serviceRegistry.getService( DatastoreProvider.class );
 		if ( provider instanceof IgniteDatastoreProvider ) {
 			IgniteDatastoreProvider igniteDatastoreProvider = (IgniteDatastoreProvider) provider;
 			initializeEntities( context, igniteDatastoreProvider );
@@ -184,7 +178,7 @@ public class IgniteCacheInitializer extends BaseSchemaDefiner {
 	private void appendIndex(QueryEntity queryEntity, AssociationKeyMetadata associationKeyMetadata, SchemaDefinitionContext context) {
 
 		for ( String idFieldName : associationKeyMetadata.getRowKeyColumnNames() ) {
-			queryEntity.addQueryField( generateIndexName( idFieldName ), String.class.getName(),null );
+			queryEntity.addQueryField( generateIndexName( idFieldName ), STRING_CLASS_NAME, null );
 			queryEntity.setIndexes( Arrays.asList( new QueryIndex( generateIndexName( idFieldName ), QueryIndexType.SORTED  ) ) );
 		}
 	}
@@ -237,33 +231,35 @@ public class IgniteCacheInitializer extends BaseSchemaDefiner {
 			Table table = tableOptional.get();
 			for ( Iterator<Column> columnIterator = table.getColumnIterator(); columnIterator.hasNext(); ) {
 				Column currentColumn = columnIterator.next();
-				Type valueType = currentColumn.getValue().getType();
-				Value value = currentColumn.getValue();
-				if ( valueType instanceof CustomType ) {
-					CustomType type = (CustomType) currentColumn.getValue().getType();
-					UserType userType = type.getUserType();
-					if ( userType instanceof EnumType ) {
-						EnumType enumType = (EnumType) type.getUserType();
-						if ( enumType.isOrdinal() ) {
-							queryEntity.addQueryField( currentColumn.getName(), Integer.class.getName(), null );
-						}
-						else {
-							queryEntity.addQueryField( currentColumn.getName(), String.class.getName(), null );
-						}
-					}
-				}
-				else if ( valueType instanceof YesNoType ) {
-					queryEntity.addQueryField( currentColumn.getName(), String.class.getName(), null );
-				}
-				else if ( value.getClass() == SimpleValue.class ) {
-					// it is simple type. add the field
-					SimpleValue simpleValue = (SimpleValue) value;
-					Class returnValue = simpleValue.getType().getReturnedClass();
-					returnValue = h2TypeMapping.getOrDefault( returnValue, returnValue );
-					queryEntity.addQueryField( currentColumn.getName(), returnValue.getName(), null );
-				}
+				String fieldType = fieldType( currentColumn );
+				queryEntity.addQueryField( currentColumn.getName(), fieldType, null );
 			}
 		}
 	}
 
+	private String fieldType(Column currentColumn) {
+		TypeTranslator translator = serviceRegistry.getService( TypeTranslator.class );
+		Type valueType = currentColumn.getValue().getType();
+		GridType gridType = translator.getType( valueType );
+		if ( gridType instanceof EnumType ) {
+			return enumFieldType( (EnumType) gridType );
+		}
+		if ( gridType instanceof YesNoType ) {
+			return STRING_CLASS_NAME;
+		}
+		if ( gridType instanceof NumericBooleanType ) {
+			return INTEGER_CLASS_NAME;
+		}
+		Class<?> returnedClass = valueType.getReturnedClass();
+		if ( Character.class.equals( returnedClass ) ) {
+			return STRING_CLASS_NAME;
+		}
+		return returnedClass.getName();
+	}
+
+	private String enumFieldType(EnumType enumType) {
+		return enumType.isOrdinal()
+				? INTEGER_CLASS_NAME
+				: STRING_CLASS_NAME;
+	}
 }
