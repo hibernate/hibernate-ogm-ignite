@@ -46,9 +46,7 @@ import org.hibernate.type.Type;
  */
 public class IgniteCacheInitializer extends BaseSchemaDefiner {
 
-	private static final long serialVersionUID = -8564869898957031491L;
 	private static final Log log = LoggerFactory.getLogger();
-
 	private static final String STRING_CLASS_NAME = String.class.getName();
 	private static final String INTEGER_CLASS_NAME = Integer.class.getName();
 
@@ -56,7 +54,6 @@ public class IgniteCacheInitializer extends BaseSchemaDefiner {
 
 	@Override
 	public void initializeSchema(SchemaDefinitionContext context) {
-
 		serviceRegistry = context.getSessionFactory().getServiceRegistry();
 		DatastoreProvider provider = serviceRegistry.getService( DatastoreProvider.class );
 		if ( provider instanceof IgniteDatastoreProvider ) {
@@ -71,7 +68,6 @@ public class IgniteCacheInitializer extends BaseSchemaDefiner {
 	}
 
 	private void initializeEntities(SchemaDefinitionContext context, final IgniteDatastoreProvider igniteDatastoreProvider) {
-
 		for ( EntityKeyMetadata entityKeyMetadata : context.getAllEntityKeyMetadata() ) {
 			try {
 				try {
@@ -90,13 +86,11 @@ public class IgniteCacheInitializer extends BaseSchemaDefiner {
 	}
 
 	private void initializeAssociations(SchemaDefinitionContext context, IgniteDatastoreProvider igniteDatastoreProvider) {
-
 		for ( AssociationKeyMetadata associationKeyMetadata : context.getAllAssociationKeyMetadata() ) {
-			log.debugf( "initializeAssociations. associationKeyMetadata: %s ", associationKeyMetadata );
+			log.debugf( "initializeAssociations. associationKeyMetadata: %s", associationKeyMetadata );
 			if ( associationKeyMetadata.getAssociationKind() != AssociationKind.EMBEDDED_COLLECTION
 					&& IgniteAssociationSnapshot.isThirdTableAssociation( associationKeyMetadata ) ) {
 				try {
-
 					try {
 						igniteDatastoreProvider.getAssociationCache( associationKeyMetadata );
 					}
@@ -115,8 +109,6 @@ public class IgniteCacheInitializer extends BaseSchemaDefiner {
 			}
 		}
 	}
-
-
 
 	private void initializeIdSources(SchemaDefinitionContext context, IgniteDatastoreProvider igniteDatastoreProvider) {
 		// generate tables
@@ -161,22 +153,18 @@ public class IgniteCacheInitializer extends BaseSchemaDefiner {
 	}
 
 	private CacheConfiguration createCacheConfiguration(AssociationKeyMetadata associationKeyMetadata, SchemaDefinitionContext context) {
-
-		CacheConfiguration result = new CacheConfiguration();
-		result.setName( StringHelper.stringBeforePoint( associationKeyMetadata.getTable() ) );
-
 		QueryEntity queryEntity = new QueryEntity();
 		queryEntity.setTableName( associationKeyMetadata.getTable() );
 		queryEntity.setValueType( StringHelper.stringAfterPoint( associationKeyMetadata.getTable() ) );
 		appendIndex( queryEntity, associationKeyMetadata, context );
 
+		CacheConfiguration result = new CacheConfiguration();
+		result.setName( StringHelper.stringBeforePoint( associationKeyMetadata.getTable() ) );
 		result.setQueryEntities( Arrays.asList( queryEntity ) );
-
 		return result;
 	}
 
 	private void appendIndex(QueryEntity queryEntity, AssociationKeyMetadata associationKeyMetadata, SchemaDefinitionContext context) {
-
 		for ( String idFieldName : associationKeyMetadata.getRowKeyColumnNames() ) {
 			queryEntity.addQueryField( generateIndexName( idFieldName ), STRING_CLASS_NAME, null );
 			queryEntity.setIndexes( Arrays.asList( new QueryIndex( generateIndexName( idFieldName ), QueryIndexType.SORTED  ) ) );
@@ -194,22 +182,19 @@ public class IgniteCacheInitializer extends BaseSchemaDefiner {
 	}
 
 	private CacheConfiguration<?,?> createEntityCacheConfiguration(EntityKeyMetadata entityKeyMetadata, SchemaDefinitionContext context) {
-
 		CacheConfiguration<?,?> cacheConfiguration = new CacheConfiguration<>();
 		cacheConfiguration.setStoreKeepBinary( true );
 		cacheConfiguration.setSqlSchema( QueryUtils.DFLT_SCHEMA );
 		cacheConfiguration.setBackups( 1 );
-
 		cacheConfiguration.setName( StringHelper.stringBeforePoint( entityKeyMetadata.getTable() ) );
 		cacheConfiguration.setAtomicityMode( CacheAtomicityMode.TRANSACTIONAL );
 
 		QueryEntity queryEntity = new QueryEntity();
-
 		queryEntity.setTableName( entityKeyMetadata.getTable() );
 		queryEntity.setKeyType( getEntityIdClassName( entityKeyMetadata.getTable(), context ).getSimpleName() );
 		queryEntity.setValueType( StringHelper.stringAfterPoint( entityKeyMetadata.getTable() ) );
-		addTableInfo( queryEntity, context, entityKeyMetadata.getTable() );
 
+		addTableInfo( queryEntity, context, entityKeyMetadata.getTable() );
 		for ( AssociationKeyMetadata associationKeyMetadata : context.getAllAssociationKeyMetadata() ) {
 			if ( associationKeyMetadata.getAssociationKind() != AssociationKind.EMBEDDED_COLLECTION
 					&& associationKeyMetadata.getTable().equals( entityKeyMetadata.getTable() )
@@ -219,7 +204,6 @@ public class IgniteCacheInitializer extends BaseSchemaDefiner {
 		}
 		log.debugf( "queryEntity: %s", queryEntity );
 		cacheConfiguration.setQueryEntities( Arrays.asList( queryEntity ) );
-
 		return cacheConfiguration;
 	}
 
