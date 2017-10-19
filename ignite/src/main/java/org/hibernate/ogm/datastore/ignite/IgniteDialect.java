@@ -50,6 +50,7 @@ import org.hibernate.ogm.dialect.query.spi.ParameterMetadataBuilder;
 import org.hibernate.ogm.dialect.query.spi.QueryParameters;
 import org.hibernate.ogm.dialect.query.spi.QueryableGridDialect;
 import org.hibernate.ogm.dialect.query.spi.RowSelection;
+import org.hibernate.ogm.dialect.query.spi.TypedGridValue;
 import org.hibernate.ogm.dialect.spi.AssociationContext;
 import org.hibernate.ogm.dialect.spi.AssociationTypeContext;
 import org.hibernate.ogm.dialect.spi.BaseGridDialect;
@@ -155,9 +156,6 @@ public class IgniteDialect extends BaseGridDialect implements GridDialect, Query
 			builder = provider.createBinaryObjectBuilder( provider.getEntityTypeName( key.getMetadata().getTable() ) );
 		}
 		for ( String columnName : tuple.getColumnNames() ) {
-			if ( key.getMetadata().isKeyColumn( columnName ) ) {
-				continue;
-			}
 			Object value = tuple.get( columnName );
 			if ( value != null ) {
 				builder.setField( StringHelper.realColumnName( columnName ), value );
@@ -562,7 +560,7 @@ public class IgniteDialect extends BaseGridDialect implements GridDialect, Query
 				}
 				break;
 			case SEQUENCE:
-				IgniteAtomicSequence seq = provider.atomicSequence( request.getKey().getMetadata().getName(), request.getInitialValue(), true );
+				IgniteAtomicSequence seq = provider.atomicSequence( request.getKey().getMetadata().getName(), request.getInitialValue(), false );
 				result = seq.getAndAdd( request.getIncrement() );
 				break;
 		}
@@ -584,6 +582,7 @@ public class IgniteDialect extends BaseGridDialect implements GridDialect, Query
 		throw new UnsupportedOperationException( "executeBackendUpdateQuery() is not implemented" );
 	}
 
+	@SuppressWarnings({ "rawtypes", "unchecked" })
 	@Override
 	public ClosableIterator<Tuple> executeBackendQuery(BackendQuery<IgniteQueryDescriptor> backendQuery, QueryParameters queryParameters,
 			TupleContext tupleContext) {
@@ -591,18 +590,30 @@ public class IgniteDialect extends BaseGridDialect implements GridDialect, Query
 		if ( backendQuery.getSingleEntityMetadataInformationOrNull() != null ) {
 			cache = provider.getEntityCache( backendQuery.getSingleEntityMetadataInformationOrNull().getEntityKeyMetadata() );
 		}
-//		else if ( backendQuery.getQuery().getQuerySpaces().size() > 0 ) {
-//			cache = provider.getEntityCache( backendQuery.getQuery().getQuerySpaces().iterator().next() );
-//		}
 		else {
 			throw new UnsupportedOperationException( "Not implemented. Can't find cache name" );
 		}
-
+		List indexedParameters = null;
+		if ( !queryParameters.getNamedParameters().isEmpty() ) {
+			indexedParameters = new ArrayList( queryParameters.getNamedParameters().size() );
+			for ( Map.Entry<String, TypedGridValue> entry : queryParameters.getNamedParameters().entrySet() ) {
+				indexedParameters.add( entry.getValue().getValue() );
+			}
+		}
+		else if ( !queryParameters.getPositionalParameters().isEmpty() ) {
+			indexedParameters = new ArrayList( queryParameters.getPositionalParameters().size() );
+			for ( TypedGridValue typedGridValue : queryParameters.getPositionalParameters() ) {
+				indexedParameters.add( typedGridValue.getValue() );
+			}
+		}
+		else {
+			indexedParameters = backendQuery.getQuery().getIndexedParameters() != null ? backendQuery.getQuery().getIndexedParameters() : null;
+		}
 		QueryHints hints = ( new QueryHints.Builder( null /* queryParameters.getQueryHints() */ ) ).build();
 		SqlFieldsQuery sqlQuery = provider.createSqlFieldsQueryWithLog(
 				backendQuery.getQuery().getSql(),
 				hints,
-				backendQuery.getQuery().getIndexedParameters() != null ? backendQuery.getQuery().getIndexedParameters().toArray() : null
+				indexedParameters != null ? indexedParameters.toArray() : null
 		);
 		Iterable<List<?>> result = executeWithHints( cache, sqlQuery, hints );
 
