@@ -183,13 +183,13 @@ public class IgniteDatastoreProvider extends BaseDatastoreProvider
 					cacheManager = (IgniteEx) Ignition.ignite( gridName );
 				}
 				catch (IgniteIllegalStateException iise) {
-					// not found, then start
+					// not found, then starting
 					conf.setIgniteInstanceName( gridName );
 					cacheManager = (IgniteEx) Ignition.start( conf );
-					
-					if (conf.getPersistentStoreConfiguration()!=null && !conf.isClientMode() ) {
+
+					if ( conf.getPersistentStoreConfiguration() != null && !conf.isClientMode() ) {
 						log.info( "Try to activate native persistence" );
-						cacheManager.active( true );						
+						cacheManager.active( true );
 					}
 					stopOnExit = true;
 				}
