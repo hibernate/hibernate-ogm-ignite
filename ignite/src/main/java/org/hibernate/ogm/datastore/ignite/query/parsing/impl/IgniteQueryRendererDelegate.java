@@ -90,6 +90,12 @@ public class IgniteQueryRendererDelegate extends SingleEntityQueryRendererDelega
 		queryBuilder.append( " FROM " ).append( tableName ).append( ' ' ).append( tableAlias ).append( ' ' );
 	}
 
+	private String getTableName() {
+		String tableAlias = propertyHelper.findAliasForType( targetTypeName );
+		OgmEntityPersister persister = (OgmEntityPersister) ( sessionFactory ).getEntityPersister( targetType.getName() );
+		return propertyHelper.getKeyMetaData( targetType.getName() ).getTable();
+	}
+
 	@Override
 	public IgniteQueryParsingResult getResult() {
 		StringBuilder queryBuilder = new StringBuilder();
@@ -99,7 +105,7 @@ public class IgniteQueryRendererDelegate extends SingleEntityQueryRendererDelega
 		orderBy( queryBuilder );
 
 		boolean hasScalar = false; // no projections for now
-		IgniteQueryDescriptor queryDescriptor = new IgniteQueryDescriptor( queryBuilder.toString(), indexedParameters, hasScalar );
+		IgniteQueryDescriptor queryDescriptor = new IgniteQueryDescriptor( queryBuilder.toString(), getTableName(), indexedParameters, hasScalar );
 
 		return new IgniteQueryParsingResult( queryDescriptor, ENTITY_COLUMN_NAMES );
 	}
