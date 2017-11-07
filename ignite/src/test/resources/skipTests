@@ -46,8 +46,3 @@ org.hibernate.ogm.backendtck.inheritance.singletable.depositor.PolymorphicAssoci
 org.hibernate.ogm.backendtck.associations.collection.unidirectional.CollectionUnidirectionalTest#testUnidirectionalCollection
 org.hibernate.ogm.backendtck.associations.manytoone.ManyToOneTest#testUnidirectionalManyToOne
 org.hibernate.ogm.backendtck.jpa.JPAResourceLocalTest#testBootstrapAndCRUD
-
-//wait answer from experts
-org.hibernate.ogm.backendtck.callbacks.PostUpdateTest
-
-
