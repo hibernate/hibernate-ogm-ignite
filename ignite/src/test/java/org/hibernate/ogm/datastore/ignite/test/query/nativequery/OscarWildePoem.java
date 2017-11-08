@@ -17,16 +17,12 @@ import javax.persistence.NamedNativeQuery;
 
 @Entity
 //@todo fix problem with rename cache
-//@Table(name = OscarWildePoem.TABLE_NAME)
-
 
 @NamedNativeQueries({
 		@NamedNativeQuery(name = "PortiaOscarWildePoem", query = "select _key,_val from OscarWildePoem  where  name='Portia' and author='Oscar Wilde'", resultClass = OscarWildePoem.class),
-		@NamedNativeQuery(name = "OscarWildePoemWithParameters", query = "select _key,_val from OscarWildePoem  where  name=?1 and author=?2", resultClass = OscarWildePoem.class)
+		@NamedNativeQuery(name = "OscarWildePoemWithParameters", query = "select _key,_val from OscarWildePoem  where  name=? and author=?", resultClass = OscarWildePoem.class)
 })
 public class OscarWildePoem {
-
-	//public static final String TABLE_NAME = "WILDE_POEM";
 
 	private Long id;
 	private String name;

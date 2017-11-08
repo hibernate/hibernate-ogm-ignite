@@ -21,7 +21,6 @@ import org.junit.Test;
 
 /**
  * @author Sergey Chernolyas &amp;sergey_chernolyas@gmail.com&amp;
- * @see <a href="https://docs.jboss.org/hibernate/orm/5.1/userguide/html_single/chapters/query/native/Native.html">Native Queries</a>
  */
 public class IgniteEntityManagerNativeQueryTest extends OgmJpaTestCase {
 
@@ -30,10 +29,6 @@ public class IgniteEntityManagerNativeQueryTest extends OgmJpaTestCase {
 
 	private final OscarWildePoem portia = new OscarWildePoem( 1L, "Portia", "Oscar Wilde" );
 	private final OscarWildePoem athanasia = new OscarWildePoem( 2L, "Athanasia", "Oscar Wilde", (byte) 5 );
-	private final Poet christian = new Poet( "christian", "Christian Abendsonne" );
-	private final Poet james = new Poet( "james", "James Krass" );
-	private final LiteratureSociety stencilClub = new LiteratureSociety( "stencil-club", "Stencil Club Germany", christian, james );
-	private final Critic critic = new Critic( new CriticId( "de", "764" ), "Roger" );
 
 	private EntityManager em;
 
@@ -42,7 +37,7 @@ public class IgniteEntityManagerNativeQueryTest extends OgmJpaTestCase {
 		// prepare test data
 		em = createEntityManager();
 		begin();
-		em = persist( portia, athanasia, stencilClub, critic );
+		em = persist( portia, athanasia );
 		commit();
 		em.close();
 
@@ -53,7 +48,7 @@ public class IgniteEntityManagerNativeQueryTest extends OgmJpaTestCase {
 	public void tearDown() throws Exception {
 		rollback();
 		begin();
-		delete( portia, athanasia, stencilClub, critic );
+		delete( portia, athanasia );
 		commit();
 		close( em );
 	}
@@ -81,7 +76,7 @@ public class IgniteEntityManagerNativeQueryTest extends OgmJpaTestCase {
 		commit();
 	}
 	@Test
-	public void testNamedQueryResultQueryWithParameters() throws Exception {
+	public void testNamedQueryResultQueryWithPositionalParameters() throws Exception {
 		begin();
 
 		Query poemQuery = em.createNamedQuery( "OscarWildePoemWithParameters", OscarWildePoem.class );
@@ -96,9 +91,9 @@ public class IgniteEntityManagerNativeQueryTest extends OgmJpaTestCase {
 
 
 	@Test
-	public void testSingleResultQueryWithParameters() throws Exception {
+	public void testSingleResultQueryWithPositionalParameters() throws Exception {
 		begin();
-		String nativeQuery = "select _key,_val from OscarWildePoem  where name=?1 and author=?2";
+		String nativeQuery = "select _key,_val from OscarWildePoem  where name=? and author=?";
 		Query poemQuery = em.createNativeQuery( nativeQuery, OscarWildePoem.class );
 		poemQuery.setParameter( 1, "Portia" );
 		poemQuery.setParameter( 2, "Oscar Wilde" );
@@ -156,6 +151,6 @@ public class IgniteEntityManagerNativeQueryTest extends OgmJpaTestCase {
 	}
 	@Override
 	public Class<?>[] getAnnotatedClasses() {
-		return new Class<?>[] { OscarWildePoem.class, LiteratureSociety.class, Poet.class, Critic.class };
+		return new Class<?>[] { OscarWildePoem.class };
 	}
 }
