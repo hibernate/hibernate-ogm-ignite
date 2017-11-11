@@ -595,10 +595,7 @@ public class IgniteDialect extends BaseGridDialect implements GridDialect, Query
 		}
 		List indexedParameters = null;
 		if ( !queryParameters.getNamedParameters().isEmpty() ) {
-			indexedParameters = new ArrayList( queryParameters.getNamedParameters().size() );
-			for ( Map.Entry<String, TypedGridValue> entry : queryParameters.getNamedParameters().entrySet() ) {
-				indexedParameters.add( entry.getValue().getValue() );
-			}
+			throw new UnsupportedOperationException( "The Ignite SQL not supports named parameters! Use positional parameters!" );
 		}
 		else if ( !queryParameters.getPositionalParameters().isEmpty() ) {
 			indexedParameters = new ArrayList( queryParameters.getPositionalParameters().size() );

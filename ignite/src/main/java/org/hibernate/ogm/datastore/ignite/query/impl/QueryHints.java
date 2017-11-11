@@ -15,7 +15,9 @@ import org.hibernate.HibernateException;
  * Hints for executing Ignite queries
  *
  * @author Victor Kadachigov
+ * @deprecated Part of old API. Use {@link javax.persistence.Query#setHint(String, Object)} for configuring hints.
  */
+@Deprecated
 public class QueryHints {
 
 	public static final String HINT_LOCAL_QUERY = "local";

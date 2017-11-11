@@ -90,6 +90,12 @@ public class IgniteQueryRendererDelegate extends SingleEntityQueryRendererDelega
 		queryBuilder.append( " FROM " ).append( tableName ).append( ' ' ).append( tableAlias ).append( ' ' );
 	}
 
+	private String getTableName() {
+		String tableAlias = propertyHelper.findAliasForType( targetTypeName );
+		OgmEntityPersister persister = (OgmEntityPersister) ( sessionFactory ).getEntityPersister( targetType.getName() );
+		return propertyHelper.getKeyMetaData( targetType.getName() ).getTable();
+	}
+
 	@Override
 	public IgniteQueryParsingResult getResult() {
 		StringBuilder queryBuilder = new StringBuilder();
@@ -99,7 +105,7 @@ public class IgniteQueryRendererDelegate extends SingleEntityQueryRendererDelega
 		orderBy( queryBuilder );
 
 		boolean hasScalar = false; // no projections for now
-		IgniteQueryDescriptor queryDescriptor = new IgniteQueryDescriptor( queryBuilder.toString(), indexedParameters, hasScalar );
+		IgniteQueryDescriptor queryDescriptor = new IgniteQueryDescriptor( queryBuilder.toString(), getTableName(), null, hasScalar );
 
 		return new IgniteQueryParsingResult( queryDescriptor, ENTITY_COLUMN_NAMES );
 	}
@@ -107,7 +113,7 @@ public class IgniteQueryRendererDelegate extends SingleEntityQueryRendererDelega
 	@Override
 	protected void addSortField(PropertyPath propertyPath, String collateName, boolean isAscending) {
 		if ( orderByExpressions == null ) {
-			orderByExpressions = new ArrayList<OrderByClause>();
+			orderByExpressions = new ArrayList<>();
 		}
 
 		List<String> propertyPathWithoutAlias = resolveAlias( propertyPath );
@@ -117,6 +123,7 @@ public class IgniteQueryRendererDelegate extends SingleEntityQueryRendererDelega
 		orderByExpressions.add( order );
 	}
 
+	@Deprecated
 	private void fillIndexedParams(String param) {
 		if ( param.startsWith( ":" ) ) {
 			if ( indexedParameters == null ) {
