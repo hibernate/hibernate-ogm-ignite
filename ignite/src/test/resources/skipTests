@@ -18,6 +18,21 @@ org.hibernate.ogm.backendtck.queries.CompositeIdQueriesTest
 org.hibernate.ogm.backendtck.queries.QueriesWithAssociationsTest
 org.hibernate.ogm.backendtck.queries.QueriesWithEmbeddedCollectionTest
 org.hibernate.ogm.backendtck.queries.QueriesWithEmbeddedTest
+org.hibernate.ogm.backendtck.queries.SimpleQueriesTest#testInQueryOnAssociatedEntity
+org.hibernate.ogm.backendtck.queries.SimpleQueriesTest#testIsNotNullQueryOnAssociatedEntity
+org.hibernate.ogm.backendtck.queries.SimpleQueriesTest#testIsNullQueryOnPropertyOfAssociatedEntity
+org.hibernate.ogm.backendtck.queries.SimpleQueriesTest#testLikeQueryWithSingleCharacterWildCard
+org.hibernate.ogm.backendtck.queries.SimpleQueriesTest#testProjectionWithNullValue
+org.hibernate.ogm.backendtck.queries.SimpleQueriesTest#testQualifiedProjectionQuery
+org.hibernate.ogm.backendtck.queries.SimpleQueriesTest#testQueryWithPropertyFromAssociatedEntityInWhereClause
+org.hibernate.ogm.backendtck.queries.SimpleQueriesTest#testSelectingAttributeFromAssociatedEntityInProjectionQuery
+org.hibernate.ogm.backendtck.queries.SimpleQueriesTest#testSelectingAttributeFromIndirectlyAssociatedEntityInProjectionQuery
+org.hibernate.ogm.backendtck.queries.SimpleQueriesTest#testSelectingCompleteEntityInProjectionQuery
+org.hibernate.ogm.backendtck.queries.SimpleQueriesTest#testSelectingCompleteIndexedEmbeddedEntityInProjectionQueryRaisesException
+org.hibernate.ogm.backendtck.queries.SimpleQueriesTest#testUnqualifiedProjectionQuery
+org.hibernate.ogm.backendtck.queries.SimpleQueriesWithSingleTableInheritanceTest
+org.hibernate.ogm.backendtck.queries.SimpleQueriesWithTablePerClassInheritanceTest
+org.hibernate.ogm.backendtck.queries.SimpleQueriesWithTablePerClassNotSupportedTest
 org.hibernate.ogm.backendtck.type.converter.JpaAttributeConverterTest
 
 //skip polymorphic tests
@@ -31,18 +46,3 @@ org.hibernate.ogm.backendtck.inheritance.singletable.depositor.PolymorphicAssoci
 org.hibernate.ogm.backendtck.associations.collection.unidirectional.CollectionUnidirectionalTest#testUnidirectionalCollection
 org.hibernate.ogm.backendtck.associations.manytoone.ManyToOneTest#testUnidirectionalManyToOne
 org.hibernate.ogm.backendtck.jpa.JPAResourceLocalTest#testBootstrapAndCRUD
-
-
-org.hibernate.ogm.backendtck.storedprocedures.indexed.IndexedStoredProcedureCallTest
-org.hibernate.ogm.backendtck.storedprocedures.named.NamedStoredProcedureCallTest
-
-//The Ignite SQL not supports named parameters! Use positional parameters!
-org.hibernate.ogm.backendtck.queries.SimpleQueriesTest
-org.hibernate.ogm.backendtck.queries.JpaQueriesTest
-org.hibernate.ogm.backendtck.queries.QueriesWithToOnePropertyTest
-org.hibernate.ogm.backendtck.queries.SimpleQueriesWithSingleTableInheritanceTest
-org.hibernate.ogm.backendtck.queries.parameters.QueryWithParametersTest
-org.hibernate.ogm.backendtck.simpleentity.NullableFieldValueTest
-org.hibernate.ogm.backendtck.inheritance.singletable.family.SingleTableInheritancePersistTest
-org.hibernate.ogm.backendtck.queries.SimpleQueriesWithTablePerClassNotSupportedTest
-org.hibernate.ogm.backendtck.queries.SimpleQueriesWithTablePerClassInheritanceTest
