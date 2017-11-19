@@ -44,6 +44,7 @@ import org.hibernate.ogm.datastore.ignite.query.impl.QueryHints;
 import org.hibernate.ogm.datastore.ignite.type.impl.IgniteGridTypeMapper;
 import org.hibernate.ogm.datastore.ignite.util.StringHelper;
 import org.hibernate.ogm.datastore.map.impl.MapTupleSnapshot;
+import org.hibernate.ogm.dialect.multiget.spi.MultigetGridDialect;
 import org.hibernate.ogm.dialect.query.spi.BackendQuery;
 import org.hibernate.ogm.dialect.query.spi.ClosableIterator;
 import org.hibernate.ogm.dialect.query.spi.ParameterMetadataBuilder;
@@ -81,7 +82,7 @@ import org.hibernate.ogm.util.impl.Contracts;
 import org.hibernate.persister.entity.Lockable;
 import org.hibernate.type.Type;
 
-public class IgniteDialect extends BaseGridDialect implements GridDialect, QueryableGridDialect<IgniteQueryDescriptor> {
+public class IgniteDialect extends BaseGridDialect implements GridDialect, MultigetGridDialect, QueryableGridDialect<IgniteQueryDescriptor> {
 
 	private static final long serialVersionUID = -4347702430400562694L;
 	private static final Log log = LoggerFactory.getLogger();
@@ -117,17 +118,33 @@ public class IgniteDialect extends BaseGridDialect implements GridDialect, Query
 	@Override
 	public Tuple getTuple(EntityKey key, OperationContext operationContext) {
 		IgniteCache<Object, BinaryObject> entityCache = provider.getEntityCache( key.getMetadata() );
-		if ( entityCache == null ) {
-			throw log.cacheNotFound( key.getMetadata().getTable() );
-		}
 		Object id = provider.createKeyObject( key );
-		BinaryObject po = entityCache.get( id );
-		if ( po != null ) {
-			return new Tuple( new IgniteTupleSnapshot( id, po, key.getMetadata() ), SnapshotType.UPDATE );
+		BinaryObject bo = entityCache.get( id );
+		if ( bo != null ) {
+			return new Tuple( new IgniteTupleSnapshot( id, bo, key.getMetadata() ), SnapshotType.UPDATE );
 		}
 		else {
 			return null;
 		}
+	}
+
+	@Override
+	public List<Tuple> getTuples(EntityKey[] keys, TupleContext tupleContext) {
+		List<Tuple> result = new ArrayList<>( keys.length );
+		IgniteCache<Object, BinaryObject> entityCache = provider.getEntityCache( keys[0].getMetadata() );
+		Map<EntityKey, Object> ids = new HashMap<>( keys.length );
+		for ( EntityKey key : keys ) {
+			ids.put( key, provider.createKeyObject( key ) );
+		}
+		Map<Object, BinaryObject> objects = entityCache.getAll( new HashSet<>( ids.values() ) );
+		for ( EntityKey key : keys ) {
+			Object id = ids.get( key );
+			BinaryObject bo = objects.get( id );
+			result.add(
+					bo != null ? new Tuple( new IgniteTupleSnapshot( id, bo, key.getMetadata() ), SnapshotType.UPDATE ) : null
+			);
+		}
+		return result;
 	}
 
 	@Override
