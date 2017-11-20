@@ -10,6 +10,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -133,10 +134,13 @@ public class IgniteDialect extends BaseGridDialect implements GridDialect, Multi
 		List<Tuple> result = new ArrayList<>( keys.length );
 		IgniteCache<Object, BinaryObject> entityCache = provider.getEntityCache( keys[0].getMetadata() );
 		Map<EntityKey, Object> ids = new HashMap<>( keys.length );
+		Set<Object> idSet = new LinkedHashSet<>( keys.length ); // LinkedHashSet to keep keys order
 		for ( EntityKey key : keys ) {
-			ids.put( key, provider.createKeyObject( key ) );
+			Object id = provider.createKeyObject( key );
+			ids.put( key, id );
+			idSet.add( id );
 		}
-		Map<Object, BinaryObject> objects = entityCache.getAll( new HashSet<>( ids.values() ) );
+		Map<Object, BinaryObject> objects = entityCache.getAll( idSet );
 		for ( EntityKey key : keys ) {
 			Object id = ids.get( key );
 			BinaryObject bo = objects.get( id );

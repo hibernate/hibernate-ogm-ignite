@@ -6,8 +6,6 @@
  */
 package org.hibernate.ogm.datastore.ignite.utils;
 
-import org.hibernate.ogm.datastore.ignite.IgniteConfigurationBuilder;
-
 import org.apache.ignite.IgniteSystemProperties;
 import org.apache.ignite.binary.BinaryBasicNameMapper;
 import org.apache.ignite.configuration.BinaryConfiguration;
@@ -15,6 +13,7 @@ import org.apache.ignite.configuration.IgniteConfiguration;
 import org.apache.ignite.configuration.TransactionConfiguration;
 import org.apache.ignite.transactions.TransactionConcurrency;
 import org.apache.ignite.transactions.TransactionIsolation;
+import org.hibernate.ogm.datastore.ignite.IgniteConfigurationBuilder;
 
 /**
  * Ignite cache configuration for tests
@@ -41,10 +40,9 @@ public class IgniteTestConfigurationBuilder implements IgniteConfigurationBuilde
 		binaryConfiguration.setCompactFooter( false );		// it is necessary only for embedded collections (@ElementCollection)
 		config.setBinaryConfiguration( binaryConfiguration );
 		TransactionConfiguration transactionConfiguration = new TransactionConfiguration();
-		transactionConfiguration.setDefaultTxConcurrency( TransactionConcurrency.OPTIMISTIC );
+		transactionConfiguration.setDefaultTxConcurrency( TransactionConcurrency.PESSIMISTIC );
 		transactionConfiguration.setDefaultTxIsolation( TransactionIsolation.READ_COMMITTED );
 		config.setTransactionConfiguration( transactionConfiguration );
-
 		return config;
 	}
 }
