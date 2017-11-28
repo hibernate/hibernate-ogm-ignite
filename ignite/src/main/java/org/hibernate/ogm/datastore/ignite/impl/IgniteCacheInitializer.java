@@ -9,10 +9,13 @@ package org.hibernate.ogm.datastore.ignite.impl;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.Optional;
 import java.util.Set;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.ignite.cache.CacheAtomicityMode;
+import org.apache.ignite.cache.CacheMode;
 import org.apache.ignite.cache.QueryEntity;
 import org.apache.ignite.cache.QueryIndex;
 import org.apache.ignite.cache.QueryIndexType;
@@ -22,6 +25,7 @@ import org.hibernate.HibernateException;
 import org.hibernate.boot.model.relational.Namespace;
 import org.hibernate.boot.model.relational.Sequence;
 import org.hibernate.mapping.Column;
+import org.hibernate.mapping.Index;
 import org.hibernate.mapping.Table;
 import org.hibernate.ogm.datastore.ignite.logging.impl.Log;
 import org.hibernate.ogm.datastore.ignite.logging.impl.LoggerFactory;
@@ -75,6 +79,7 @@ public class IgniteCacheInitializer extends BaseSchemaDefiner {
 				}
 				catch (HibernateException ex) {
 					CacheConfiguration config = createEntityCacheConfiguration( entityKeyMetadata, context );
+					log.info( "Config: " + config );
 					igniteDatastoreProvider.initializeCache( config );
 				}
 			}
@@ -149,6 +154,8 @@ public class IgniteCacheInitializer extends BaseSchemaDefiner {
 	private CacheConfiguration createCacheConfiguration(IdSourceKeyMetadata idSourceKeyMetadata) {
 		CacheConfiguration result = new CacheConfiguration();
 		result.setName( StringHelper.stringBeforePoint( idSourceKeyMetadata.getName() ) );
+		result.setAtomicityMode( CacheAtomicityMode.TRANSACTIONAL );
+		result.setCacheMode( CacheMode.REPLICATED );
 		return result;
 	}
 
@@ -161,18 +168,25 @@ public class IgniteCacheInitializer extends BaseSchemaDefiner {
 		CacheConfiguration result = new CacheConfiguration();
 		result.setName( StringHelper.stringBeforePoint( associationKeyMetadata.getTable() ) );
 		result.setQueryEntities( Arrays.asList( queryEntity ) );
+		result.setCacheMode( CacheMode.PARTITIONED );
 		return result;
 	}
 
 	private void appendIndex(QueryEntity queryEntity, AssociationKeyMetadata associationKeyMetadata, SchemaDefinitionContext context) {
-		for ( String idFieldName : associationKeyMetadata.getRowKeyColumnNames() ) {
-			queryEntity.addQueryField( generateIndexName( idFieldName ), STRING_CLASS_NAME, null );
-			queryEntity.setIndexes( Arrays.asList( new QueryIndex( generateIndexName( idFieldName ), QueryIndexType.SORTED  ) ) );
+		QueryIndex queryIndex = new QueryIndex();
+		queryIndex.setIndexType( QueryIndexType.SORTED );
+		LinkedHashMap<String, Boolean> fields = new LinkedHashMap<>();
+		for ( String columnName : associationKeyMetadata.getRowKeyColumnNames() ) {
+			String realColumnName = StringHelper.realColumnName( columnName );
+			queryEntity.addQueryField( realColumnName, STRING_CLASS_NAME, null ); 	//vk: why always String here?
+			fields.put( realColumnName, true );
 		}
-	}
+		queryIndex.setFields( fields );
+		queryIndex.setName( queryEntity.getTableName() + '_' + StringUtils.join( fields.keySet(), '_' ) );
 
-	private String generateIndexName(String fieldName) {
-		return fieldName.replace( '.','_' );
+		Set<QueryIndex> indexes = new HashSet<>( queryEntity.getIndexes() );
+		indexes.add( queryIndex );
+		queryEntity.setIndexes( indexes );
 	}
 
 	private Class getEntityIdClassName( String table, SchemaDefinitionContext context ) {
@@ -185,9 +199,9 @@ public class IgniteCacheInitializer extends BaseSchemaDefiner {
 		CacheConfiguration<?,?> cacheConfiguration = new CacheConfiguration<>();
 		cacheConfiguration.setStoreKeepBinary( true );
 		cacheConfiguration.setSqlSchema( QueryUtils.DFLT_SCHEMA );
-		cacheConfiguration.setBackups( 1 );
 		cacheConfiguration.setName( StringHelper.stringBeforePoint( entityKeyMetadata.getTable() ) );
 		cacheConfiguration.setAtomicityMode( CacheAtomicityMode.TRANSACTIONAL );
+		cacheConfiguration.setCacheMode( CacheMode.PARTITIONED );
 
 		QueryEntity queryEntity = new QueryEntity();
 		queryEntity.setTableName( entityKeyMetadata.getTable() );
@@ -202,9 +216,45 @@ public class IgniteCacheInitializer extends BaseSchemaDefiner {
 				appendIndex( queryEntity, associationKeyMetadata, context );
 			}
 		}
+		addUserIndexes( queryEntity, context, entityKeyMetadata.getTable() );
+
 		log.debugf( "queryEntity: %s", queryEntity );
 		cacheConfiguration.setQueryEntities( Arrays.asList( queryEntity ) );
 		return cacheConfiguration;
+	}
+
+	/**
+	 * Create indexes for {@code @Index} annotations
+	 * @param queryEntity
+	 * @param context
+	 * @param entityKeyMetadata
+	 */
+	private void addUserIndexes(QueryEntity queryEntity, SchemaDefinitionContext context, String tableName) {
+		Namespace namespace = context.getDatabase().getDefaultNamespace();
+		Optional<Table> tableOptional = namespace.getTables().stream().filter( currentTable -> currentTable.getName().equals( tableName ) ).findFirst();
+		if ( tableOptional.isPresent() ) {
+			Table table = tableOptional.get();
+			for ( Iterator<Index> indexIterator = table.getIndexIterator(); indexIterator.hasNext(); ) {
+				Index index = indexIterator.next();
+				appendIndex( queryEntity, index, context );
+			}
+		}
+	}
+
+	private void appendIndex(QueryEntity queryEntity, Index index, SchemaDefinitionContext context) {
+		QueryIndex queryIndex = new QueryIndex();
+		queryIndex.setName( index.getName() );
+		queryIndex.setIndexType( QueryIndexType.SORTED );
+		LinkedHashMap<String, Boolean> fields = new LinkedHashMap<>();
+		for ( Iterator<Column> columnIterator = index.getColumnIterator(); columnIterator.hasNext(); ) {
+			Column currentColumn = columnIterator.next();
+			fields.put( currentColumn.getName(), true );
+		}
+		queryIndex.setFields( fields );
+
+		Set<QueryIndex> indexes = new HashSet<>( queryEntity.getIndexes() );
+		indexes.add( queryIndex );
+		queryEntity.setIndexes( indexes );
 	}
 
 	@SuppressWarnings("unchecked")

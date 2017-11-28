@@ -22,11 +22,14 @@ import org.apache.ignite.IgniteCache;
 import org.apache.ignite.Ignition;
 import org.apache.ignite.binary.BinaryObject;
 import org.apache.ignite.cache.CachePeekMode;
+import org.apache.ignite.cache.QueryEntity;
+import org.apache.ignite.cache.QueryIndex;
 import org.apache.ignite.cache.query.SqlFieldsQuery;
+import org.apache.ignite.configuration.CacheConfiguration;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.engine.spi.SessionFactoryImplementor;
-import org.hibernate.ogm.backendtck.jpa.Poem;
+import org.hibernate.ogm.OgmSessionFactory;
 import org.hibernate.ogm.datastore.document.options.AssociationStorageType;
 import org.hibernate.ogm.datastore.ignite.IgniteDialect;
 import org.hibernate.ogm.datastore.ignite.impl.IgniteDatastoreProvider;
@@ -76,7 +79,7 @@ public class IgniteTestHelper implements GridDialectTestHelper {
 	}
 
 	public static <K> Map<K, BinaryObject> find(SessionFactory sessionFactory, Class<?> class1, K... ids) {
-		OgmEntityPersister entityPersister = (OgmEntityPersister) ( (SessionFactoryImplementor) sessionFactory ).getEntityPersister( Poem.class.getName() );
+		OgmEntityPersister entityPersister = (OgmEntityPersister) ( (SessionFactoryImplementor) sessionFactory ).getEntityPersister( class1.getName() );
 		IgniteCache<K, BinaryObject> entityCache = getEntityCache( sessionFactory, entityPersister.getEntityKeyMetadata() );
 		Map<K, BinaryObject> missingIds = new HashMap<>();
 		for ( K id : ids ) {
@@ -210,6 +213,18 @@ public class IgniteTestHelper implements GridDialectTestHelper {
 
 	@Override
 	public void prepareDatabase(SessionFactory arg0) {
+	}
+
+	public static Set<QueryIndex> getIndexes(OgmSessionFactory sessionFactory, Class<?> entityClass) {
+		Set<QueryIndex> result = new HashSet<>();
+		Map<String,EntityPersister> m = ( (SessionFactoryImplementor) sessionFactory ).getEntityPersisters();
+		OgmEntityPersister entityPersister = (OgmEntityPersister) ( (SessionFactoryImplementor) sessionFactory ).locateEntityPersister( entityClass );
+		IgniteCache<Object, BinaryObject> cache = getProvider( sessionFactory ).getEntityCache( entityPersister.getEntityKeyMetadata() );
+		CacheConfiguration<Object, BinaryObject> cacheConfig = cache.getConfiguration( CacheConfiguration.class );
+		for ( QueryEntity queryEntity : cacheConfig.getQueryEntities() ) {
+			result.addAll(  queryEntity.getIndexes() );
+		}
+		return result;
 	}
 
 }

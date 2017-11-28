@@ -240,18 +240,15 @@ public class IgniteDatastoreProvider extends BaseDatastoreProvider
 		if ( StringUtils.isNotEmpty( config.getInstanceName() ) ) {
 			name = config.getInstanceName();
 		}
+		else if ( conf.getIgniteInstanceName() != null ) {
+			name = conf.getIgniteInstanceName();
+		}
+		else if ( config.getUrl() != null ) {
+			name = config.getUrl().getPath();
+			name = name.replaceAll( "[\\,\\\",:,\\*,\\/,\\\\]", "_" );
+		}
 		else {
-			IgniteConfiguration igniteConfiguration = createIgniteConfiguration();
-			if ( StringUtils.isNotEmpty( igniteConfiguration.getIgniteInstanceName() ) ) {
-				name = igniteConfiguration.getIgniteInstanceName();
-			}
-			else if ( config.getUrl() != null ) {
-				name = config.getUrl().getPath();
-				name = name.replaceAll( "[\\,\\\",:,\\*,\\/,\\\\]", "_" );
-			}
-			else {
-				name = UUID.randomUUID().toString();
-			}
+			name = UUID.randomUUID().toString();
 		}
 		return name;
 	}
