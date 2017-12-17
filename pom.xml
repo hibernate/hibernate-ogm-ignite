@@ -56,7 +56,7 @@
         <asciidoctorj-pdf.version>1.5.0-alpha.11</asciidoctorj-pdf.version>
 
         <!-- Ignite -->
-        <igniteVersion>2.3.0</igniteVersion>
+        <igniteVersion>2.1.0</igniteVersion>
         <igniteCommonsLang3Version>3.3.2</igniteCommonsLang3Version>
     </properties>
 
