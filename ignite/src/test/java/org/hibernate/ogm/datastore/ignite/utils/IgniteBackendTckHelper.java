@@ -17,9 +17,9 @@ import org.junit.runner.RunWith;
  */
 @RunWith(ClasspathSuite.class)
 @ClasspathSuite.ClassnameFilters({
-//	"org.hibernate.ogm.backendtck.*"
+	"org.hibernate.ogm.backendtck.*"
 
-	"org.hibernate.ogm.backendtck.associations.manytoone.SameRoleNameDifferentTablesTest"
+//	"org.hibernate.ogm.backendtck.associations.manytoone.SameRoleNameDifferentTablesTest"
 
 //	"org.hibernate.ogm.backendtck.queries.JpaQueriesTest",
 //	"org.hibernate.ogm.backendtck.queries.QueryUpdateTest",
