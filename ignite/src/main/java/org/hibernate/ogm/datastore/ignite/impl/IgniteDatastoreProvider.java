@@ -229,7 +229,8 @@ public class IgniteDatastoreProvider extends BaseDatastoreProvider
 					)
 			);
 		}
-		if ( !( jtaPlatform instanceof NoJtaPlatform ) ) {
+		if ( !( jtaPlatform instanceof NoJtaPlatform )
+				&& conf.getTransactionConfiguration().getTxManagerFactory() == null ) {
 			conf.getTransactionConfiguration().setTxManagerFactory( new IgniteTransactionManagerFactory( jtaPlatform ) );
 		}
 		return conf;
