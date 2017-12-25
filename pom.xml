@@ -181,7 +181,7 @@
             <dependency>
                 <groupId>org.jboss</groupId>
                 <artifactId>jboss-transaction-spi</artifactId>
-                <version>7.3.0.Final</version>
+                <version>7.6.0.Final</version>
                 <exclusions>
                     <exclusion>
                         <groupId>org.jboss.logging</groupId>
@@ -798,7 +798,7 @@
                 <additionalRuntimeArgLine>--add-modules java.xml.bind</additionalRuntimeArgLine>
             </properties>
         </profile>
-<!--		
+<!--
         <profile>
             <id>integrationtest</id>
             <activation>
@@ -844,4 +844,3 @@
         </profile>
     </profiles>
 </project>
-
