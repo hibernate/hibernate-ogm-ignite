@@ -20,7 +20,7 @@ public class IgniteTransactionManagerFactory implements Factory<TransactionManag
 
 	private static final long serialVersionUID = -4649196379875889970L;
 
-	private final JtaPlatform platform;
+	private final transient JtaPlatform platform;
 
 	public IgniteTransactionManagerFactory(JtaPlatform platform) {
 		this.platform = platform;
