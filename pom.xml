@@ -57,7 +57,6 @@
 
         <!-- Ignite -->
         <igniteVersion>2.1.0</igniteVersion>
-        <igniteCommonsLang3Version>3.3.2</igniteCommonsLang3Version>
     </properties>
 
     <modules>
@@ -223,11 +222,6 @@
                         <artifactId>lucene-core</artifactId>
                     </exclusion>
                 </exclusions>
-            </dependency>
-            <dependency>
-                <groupId>org.apache.commons</groupId>
-                <artifactId>commons-lang3</artifactId>
-                <version>${igniteCommonsLang3Version}</version>
             </dependency>
             <dependency>
                 <groupId>org.apache.ignite</groupId>

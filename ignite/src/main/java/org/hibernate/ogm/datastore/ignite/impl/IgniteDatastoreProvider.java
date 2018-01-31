@@ -6,13 +6,14 @@
  */
 package org.hibernate.ogm.datastore.ignite.impl;
 
+import static org.hibernate.ogm.datastore.ignite.util.StringHelper.isNotEmpty;
+
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
-import org.apache.commons.lang3.StringUtils;
 import org.apache.ignite.Ignite;
 import org.apache.ignite.IgniteAtomicSequence;
 import org.apache.ignite.IgniteCache;
@@ -237,12 +238,12 @@ public class IgniteDatastoreProvider extends BaseDatastoreProvider
 
 	private String createGridName(IgniteConfiguration conf) {
 		String name = null;
-		if ( StringUtils.isNotEmpty( config.getInstanceName() ) ) {
+		if ( isNotEmpty( config.getInstanceName() ) ) {
 			name = config.getInstanceName();
 		}
 		else {
 			IgniteConfiguration igniteConfiguration = createIgniteConfiguration();
-			if ( StringUtils.isNotEmpty( igniteConfiguration.getIgniteInstanceName() ) ) {
+			if ( isNotEmpty( igniteConfiguration.getIgniteInstanceName() ) ) {
 				name = igniteConfiguration.getIgniteInstanceName();
 			}
 			else if ( config.getUrl() != null ) {
@@ -436,12 +437,25 @@ public class IgniteDatastoreProvider extends BaseDatastoreProvider
 				if ( result == null ) {
 					// if nothing found we use id field name
 					result = StringHelper.stringBeforePoint( keyMetadata.getColumnNames()[0] );
-					result = StringUtils.capitalize( result );
+					result = capitalize( result );
 				}
 			}
 			compositeIdTypes.put( keyMetadata.getTable(), result );
 		}
 		return result;
+	}
+
+	private String capitalize(String value) {
+		if ( StringHelper.isEmpty( value ) ) {
+			return value;
+		}
+
+		char firstChar = Character.toTitleCase( value.charAt( 0 ) );
+		StringBuilder builder = new StringBuilder( firstChar );
+		if ( value.length() > 1 ) {
+			builder.append( value.substring( 1 ) );
+		}
+		return builder.toString();
 	}
 
 	/**

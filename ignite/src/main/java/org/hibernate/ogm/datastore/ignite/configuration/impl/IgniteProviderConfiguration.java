@@ -6,10 +6,11 @@
  */
 package org.hibernate.ogm.datastore.ignite.configuration.impl;
 
+import static org.hibernate.ogm.datastore.ignite.util.StringHelper.isNotEmpty;
+
 import java.net.URL;
 import java.util.Map;
 
-import org.apache.commons.lang3.StringUtils;
 import org.hibernate.ogm.datastore.ignite.IgniteConfigurationBuilder;
 import org.hibernate.ogm.datastore.ignite.IgniteProperties;
 import org.hibernate.ogm.datastore.ignite.impl.IgniteDatastoreProvider;
@@ -49,7 +50,7 @@ public class IgniteProviderConfiguration {
 		String className = new ConfigurationPropertyReader( configurationMap )
 				.property( IgniteProperties.CONFIGURATION_CLASS_NAME, String.class )
 				.getValue();
-		if ( StringUtils.isNotEmpty( className ) ) {
+		if ( isNotEmpty( className ) ) {
 			try {
 				this.configBuilderClass = (Class<IgniteConfigurationBuilder>) Class.forName( className );
 			}

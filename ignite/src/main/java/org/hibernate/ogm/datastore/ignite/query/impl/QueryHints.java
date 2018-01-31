@@ -8,7 +8,6 @@ package org.hibernate.ogm.datastore.ignite.query.impl;
 
 import java.util.List;
 
-import org.apache.commons.lang3.StringUtils;
 import org.hibernate.HibernateException;
 
 /**
@@ -77,13 +76,13 @@ public class QueryHints {
 			if ( hints != null ) {
 				for ( String h : hints ) {
 					int index = h.indexOf( '=' );
-					String key = StringUtils.trim( ( index > 0 ) ? h.substring( 0, index ) : h );
+					String key = ( index > 0 ? h.substring( 0, index ) : h ).trim();
 					if ( key.equalsIgnoreCase( HINT_LOCAL_QUERY ) ) {
 						this.local = true;
 					}
 					else if ( key.equalsIgnoreCase( HINT_AFFINITY_QUERY ) ) {
 						this.affinityRun = true;
-						this.affinityKey = StringUtils.trim( h.substring( index + 1 ) );
+						this.affinityKey = h.substring( index + 1 ).trim();
 					}
 				}
 			}
