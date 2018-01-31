@@ -118,11 +118,6 @@
             <scope>test</scope>
         </dependency>
 
-        <dependency>
-            <groupId>org.apache.commons</groupId>
-            <artifactId>commons-lang3</artifactId>
-        </dependency>
-
         <!-- Ignite -->
         <dependency>
             <groupId>org.apache.ignite</groupId>
