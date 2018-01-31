@@ -25,9 +25,9 @@ public class IgniteTestConfigurationBuilder implements IgniteConfigurationBuilde
 
 	@Override
 	public IgniteConfiguration build() {
-		//disable check for new versions
+		// disable check for new versions
 		System.setProperty( IgniteSystemProperties.IGNITE_UPDATE_NOTIFIER, Boolean.FALSE.toString() );
-		//disable show Ignite logo
+		// disable show Ignite logo
 		System.setProperty( IgniteSystemProperties.IGNITE_NO_ASCII, Boolean.TRUE.toString() );
 
 		return createConfig();
@@ -38,7 +38,7 @@ public class IgniteTestConfigurationBuilder implements IgniteConfigurationBuilde
 		config.setClientMode( false );
 		BinaryConfiguration binaryConfiguration = new BinaryConfiguration();
 		binaryConfiguration.setNameMapper( new BinaryBasicNameMapper( true ) );
-		binaryConfiguration.setCompactFooter( false );		// it is necessary only for embedded collections (@ElementCollection)
+		binaryConfiguration.setCompactFooter( false ); // it is necessary only for embedded collections (@ElementCollection)
 		config.setBinaryConfiguration( binaryConfiguration );
 		TransactionConfiguration transactionConfiguration = new TransactionConfiguration();
 		transactionConfiguration.setDefaultTxConcurrency( TransactionConcurrency.OPTIMISTIC );
