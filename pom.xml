@@ -180,7 +180,7 @@
             <dependency>
                 <groupId>org.jboss</groupId>
                 <artifactId>jboss-transaction-spi</artifactId>
-                <version>7.3.0.Final</version>
+                <version>${jbossTransactionSPIVersion}</version>
                 <exclusions>
                     <exclusion>
                         <groupId>org.jboss.logging</groupId>
