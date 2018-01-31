@@ -12,7 +12,7 @@
     <parent>
         <groupId>org.hibernate.ogm</groupId>
         <artifactId>hibernate-ogm-ignite-parent</artifactId>
-        <version>5.2.0-SNAPSHOT</version>
+        <version>5.2.0.CR1</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
@@ -153,6 +153,7 @@
 					<threadCount>1</threadCount>
                     <skipExec>${skipUnitTests}</skipExec>
                     <enableAssertions>false</enableAssertions>
+                    <trimStackTrace>false</trimStackTrace>
                     <dependenciesToScan>
                         <dependency>org.hibernate.ogm:hibernate-ogm-core</dependency>
                     </dependenciesToScan>
