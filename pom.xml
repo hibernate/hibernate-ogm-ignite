@@ -24,13 +24,16 @@
         <!-- JDK version required to build OGM; requiring 1.8 as WildFly 10 requires JDK 1.8; We still create
              1.7 byte code to run in other environments -->
         <minJdkVersion>1.8</minJdkVersion>
-        <jdkTargetForProcessor>1.8</jdkTargetForProcessor>
+
+        <maven.compiler.source>${minJdkVersion}</maven.compiler.source>
+        <maven.compiler.target>${minJdkVersion}</maven.compiler.target>
+
+        <jdkTargetForProcessor>${minJdkVersion}</jdkTargetForProcessor>
         <!-- test / build-only dependency versions, managed below -->
         <jbossNamingVersion>7.1.0.Final</jbossNamingVersion>
         <shrinkwrapVersion>1.2.2</shrinkwrapVersion>
         <arquillianVersion>1.2.0.Final</arquillianVersion>
         <jmhVersion>1.0</jmhVersion>
-        <jbossLoggingProcessorVersion>1.2.0.Final</jbossLoggingProcessorVersion>
         <bytemanVersion>4.0.0-BETA5</bytemanVersion>
 
         <!--
@@ -41,12 +44,6 @@
           -->
         <jgroups.bind_addr>127.0.0.1</jgroups.bind_addr>
         <skipUnitTests>false</skipUnitTests>
-
-        <hibernate-search.module.slot>${hibernateSearchVersion}-orm51</hibernate-search.module.slot>
-
-        <!-- Target version of WildFly (for testing and JipiJapa integration) -->
-        <version.wildfly>10.1.0.Final</version.wildfly>
-        <hibernateWildflyClassifier>wildfly-10-dist</hibernateWildflyClassifier>
 
         <!-- Asciidoctor -->
         <hibernate-asciidoctor-theme.version>1.0.1.Final</hibernate-asciidoctor-theme.version>
