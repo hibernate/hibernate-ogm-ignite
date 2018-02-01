@@ -42,7 +42,9 @@ public class IgniteTestConfigurationBuilder implements IgniteConfigurationBuilde
 		binaryConfiguration.setCompactFooter( false ); // it is necessary only for embedded collections (@ElementCollection)
 		config.setBinaryConfiguration( binaryConfiguration );
 		TransactionConfiguration transactionConfiguration = new TransactionConfiguration();
-		transactionConfiguration.setDefaultTxConcurrency( TransactionConcurrency.OPTIMISTIC );
+		// I'm going to use PESSIMISTIC here because some people had problem with it and it would be nice if tests
+		// can highlight the issue. Ideally, we would want to test the different concurrency and isolation level.
+		transactionConfiguration.setDefaultTxConcurrency( TransactionConcurrency.PESSIMISTIC );
 		transactionConfiguration.setDefaultTxIsolation( TransactionIsolation.READ_COMMITTED );
 		config.setTransactionConfiguration( transactionConfiguration );
 
