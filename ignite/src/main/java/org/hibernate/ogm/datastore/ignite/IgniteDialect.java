@@ -84,7 +84,6 @@ import org.hibernate.type.Type;
 
 public class IgniteDialect extends BaseGridDialect implements GridDialect, MultigetGridDialect, QueryableGridDialect<IgniteQueryDescriptor> {
 
-	private static final long serialVersionUID = -4347702430400562694L;
 	private static final Log log = LoggerFactory.getLogger();
 
 	private IgniteDatastoreProvider provider;

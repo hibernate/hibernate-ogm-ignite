@@ -21,8 +21,6 @@ import org.hibernate.type.descriptor.java.BigDecimalTypeDescriptor;
 public class IgniteBigDecimalType extends AbstractGenericBasicType<BigDecimal> {
 	public static final IgniteBigDecimalType INSTANCE = new IgniteBigDecimalType();
 
-	private static final long serialVersionUID = -2936715569041031331L;
-
 	public IgniteBigDecimalType() {
 		super( new PassThroughGridTypeDescriptor(), BigDecimalTypeDescriptor.INSTANCE );
 	}

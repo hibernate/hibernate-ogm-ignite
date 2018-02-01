@@ -73,7 +73,6 @@ import org.hibernate.service.spi.Stoppable;
 public class IgniteDatastoreProvider extends BaseDatastoreProvider
 		implements Startable, Stoppable, ServiceRegistryAwareService, Configurable {
 
-	private static final long serialVersionUID = 2278253954737494852L;
 	private static final Log log = LoggerFactory.getLogger();
 
 	private JtaPlatform jtaPlatform;

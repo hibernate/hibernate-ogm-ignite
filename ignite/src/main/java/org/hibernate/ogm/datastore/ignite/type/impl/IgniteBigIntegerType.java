@@ -21,8 +21,6 @@ import org.hibernate.type.descriptor.java.BigIntegerTypeDescriptor;
 public class IgniteBigIntegerType extends AbstractGenericBasicType<BigInteger> {
 	public static final IgniteBigIntegerType INSTANCE = new IgniteBigIntegerType();
 
-	private static final long serialVersionUID = -2936715569041031331L;
-
 	public IgniteBigIntegerType() {
 		super( new PassThroughGridTypeDescriptor(), BigIntegerTypeDescriptor.INSTANCE );
 	}
