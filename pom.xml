@@ -45,6 +45,11 @@
         <jgroups.bind_addr>127.0.0.1</jgroups.bind_addr>
         <skipUnitTests>false</skipUnitTests>
 
+        <!-- Target version of WildFly (for testing and JipiJapa integration) -->
+        <version.wildfly>11.0.0.Final</version.wildfly>
+        <hibernateWildflyClassifier>wildfly-11-dist</hibernateWildflyClassifier>
+        <version.org.wildfly.arquillian>2.1.0.Final</version.org.wildfly.arquillian>
+
         <!-- Asciidoctor -->
         <hibernate-asciidoctor-theme.version>1.0.1.Final</hibernate-asciidoctor-theme.version>
         <asciidoctor-maven-plugin.version>1.5.3</asciidoctor-maven-plugin.version>
