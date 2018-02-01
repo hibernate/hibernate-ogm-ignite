@@ -35,6 +35,7 @@ public class IgniteTestConfigurationBuilder implements IgniteConfigurationBuilde
 
 	private IgniteConfiguration createConfig() {
 		IgniteConfiguration config = new IgniteConfiguration();
+		config.setIgniteInstanceName( "OgmTestGrid" );
 		config.setClientMode( false );
 		BinaryConfiguration binaryConfiguration = new BinaryConfiguration();
 		binaryConfiguration.setNameMapper( new BinaryBasicNameMapper( true ) );
