@@ -32,6 +32,7 @@ import org.hibernate.type.Type;
  */
 public class IgnitePropertyHelper extends ParserPropertyHelper {
 	private static final Log log = LoggerFactory.getLogger();
+
 	private final Map<String, String> aliasByEntityName = new HashMap<String, String>();
 
 	public IgnitePropertyHelper(SessionFactoryImplementor sessionFactory, EntityNamesResolver entityNames) {
@@ -86,14 +87,7 @@ public class IgnitePropertyHelper extends ParserPropertyHelper {
 //					propertyAlias = aliasResolver.createAliasForEmbedded( entityAlias, currentPropertyPath, optionalMatch );
 				}
 				else {
-					propertyEntityType = associationPropertyType.getAssociatedEntityName( getSessionFactory() );
-					currentPersister = getPersister( propertyEntityType );
-					String targetNodeType = currentPersister.getEntityKeyMetadata().getTable();
-
-					throw new NotYetImplementedException();
-//					propertyAlias = aliasResolver.createAliasForAssociation( entityAlias, currentPropertyPath, targetNodeType, optionalMatch );
-//					lastAssociationPath = new ArrayList<>( currentPropertyPath );
-//					isLastElementAssociation = true;
+					isLastElementAssociation = false;
 				}
 			}
 			else if ( currentPropertyType.isComponentType()
@@ -108,6 +102,7 @@ public class IgnitePropertyHelper extends ParserPropertyHelper {
 			}
 			depth++;
 		}
+
 		if ( isLastElementAssociation ) {
 			// even the last element is an association, we need to find a suitable identifier property
 			propertyName = getSessionFactory().getEntityPersister( propertyEntityType ).getIdentifierPropertyName();
