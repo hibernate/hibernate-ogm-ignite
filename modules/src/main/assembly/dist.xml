@@ -1,9 +1,9 @@
 <!--
- ~ Hibernate OGM, Domain model persistence for NoSQL datastores
- ~
- ~ License: GNU Lesser General Public License (LGPL), version 2.1 or later
- ~ See the lgpl.txt file in the root directory or <http://www.gnu.org/licenses/lgpl-2.1.html>.
-  -->
+~ Hibernate OGM, Domain model persistence for NoSQL datastores
+~
+~ License: GNU Lesser General Public License (LGPL), version 2.1 or later
+~ See the lgpl.txt file in the root directory or <http://www.gnu.org/licenses/lgpl-2.1.html>.
+-->
 <assembly>
     <id>${hibernateWildflyClassifier}</id>
     <formats>
@@ -13,119 +13,33 @@
     <baseDirectory>/</baseDirectory>
 
     <files>
-        <!-- OGM -->
+        <!-- dialect for Apache Ignite -->
         <file>
-             <source>${module.xml.basedir}/ogm/ehcache/module.xml</source>
-             <outputDirectory>/org/hibernate/ogm/ehcache/${hibernate.ogm.ehcache.module.slot}</outputDirectory>
-             <filtered>true</filtered>
+            <source>${module.xml.basedir}/ogm/ignite/module.xml</source>
+            <outputDirectory>/org/hibernate/ogm/ignite/${hibernate.ogm.ignite.module.slot}</outputDirectory>
+            <filtered>true</filtered>
         </file>
         <file>
-             <source>${module.xml.aliases.basedir}/ogm/ehcache/module.xml</source>
-             <outputDirectory>/org/hibernate/ogm/ehcache/main</outputDirectory>
-             <filtered>true</filtered>
-        </file>
-        <file>
-             <source>${module.xml.basedir}/ogm/couchdb/module.xml</source>
-             <outputDirectory>/org/hibernate/ogm/couchdb/${hibernate.ogm.couchdb.module.slot}</outputDirectory>
-             <filtered>true</filtered>
-        </file>
-        <file>
-             <source>${module.xml.aliases.basedir}/ogm/couchdb/module.xml</source>
-             <outputDirectory>/org/hibernate/ogm/couchdb/main</outputDirectory>
-             <filtered>true</filtered>
-        </file>
-        <file>
-             <source>${module.xml.basedir}/ogm/cassandra/module.xml</source>
-             <outputDirectory>/org/hibernate/ogm/cassandra/${hibernate.ogm.cassandra.module.slot}</outputDirectory>
-             <filtered>true</filtered>
-        </file>
-        <file>
-             <source>${module.xml.aliases.basedir}/ogm/cassandra/module.xml</source>
-             <outputDirectory>/org/hibernate/ogm/cassandra/main</outputDirectory>
-             <filtered>true</filtered>
-        </file>
-        <file>
-             <source>${module.xml.basedir}/ogm/cassandra-driver/module.xml</source>
-             <outputDirectory>/org/hibernate/ogm/cassandra/driver/${hibernate.ogm.cassandra.module.slot}</outputDirectory>
-             <filtered>true</filtered>
-        </file>
-        <file>
-             <source>${module.xml.basedir}/ogm/redis/module.xml</source>
-             <outputDirectory>/org/hibernate/ogm/redis/${hibernate.ogm.redis.module.slot}</outputDirectory>
-             <filtered>true</filtered>
-        </file>
-        <file>
-             <source>${module.xml.aliases.basedir}/ogm/redis/module.xml</source>
-             <outputDirectory>/org/hibernate/ogm/redis/main</outputDirectory>
-             <filtered>true</filtered>
-        </file>
-        <file>
-             <source>${module.xml.basedir}/ogm/redis-driver/module.xml</source>
-             <outputDirectory>/org/hibernate/ogm/redis/driver/${hibernate.ogm.redis.module.slot}</outputDirectory>
+             <source>${module.xml.aliases.basedir}/ogm/ignite/module.xml</source>
+             <outputDirectory>/org/hibernate/ogm/ignite/main</outputDirectory>
              <filtered>true</filtered>
         </file>
     </files>
 
     <dependencySets>
-        <!-- OGM -->
         <dependencySet>
-             <useProjectArtifact>false</useProjectArtifact>
-             <outputDirectory>org/hibernate/ogm/ehcache/${hibernate.ogm.ehcache.module.slot}</outputDirectory>
-             <useTransitiveFiltering>false</useTransitiveFiltering>
-             <unpack>false</unpack>
-             <includes>
-                 <include>org.hibernate.ogm:hibernate-ogm-ehcache</include>
-                 <include>net.sf.ehcache:ehcache-core</include>
-              </includes>
+            <useProjectArtifact>false</useProjectArtifact>
+            <outputDirectory>org/hibernate/ogm/ignite/${hibernate.ogm.ignite.module.slot}</outputDirectory>
+            <useTransitiveFiltering>false</useTransitiveFiltering>
+            <unpack>false</unpack>            
+            <includes>
+                <include>org.hibernate.ogm:hibernate-ogm-ignite</include>
+                <include>org.apache.ignite:*</include>
+                <include>javax.cache:cache-api</include>
+                <include>org.gridgain:ignite-shmem</include>
+                <include>commons-codec:commons-codec</include>
+            </includes>
         </dependencySet>
-        <dependencySet>
-             <useProjectArtifact>false</useProjectArtifact>
-             <outputDirectory>org/hibernate/ogm/cassandra/${hibernate.ogm.cassandra.module.slot}</outputDirectory>
-             <useTransitiveFiltering>false</useTransitiveFiltering>
-             <unpack>false</unpack>
-             <includes>
-                 <include>org.hibernate.ogm:hibernate-ogm-cassandra</include>
-             </includes>
-       </dependencySet>
-       <dependencySet>
-             <useProjectArtifact>false</useProjectArtifact>
-             <outputDirectory>org/hibernate/ogm/cassandra/driver/${hibernate.ogm.cassandra.module.slot}</outputDirectory>
-             <useTransitiveFiltering>false</useTransitiveFiltering>
-             <unpack>false</unpack>
-             <includes>
-                 <include>com.datastax.cassandra:cassandra-driver-core</include>
-                 <include>io.dropwizard.metrics:metrics-core</include>
-                 <include>com.google.guava:guava</include>
-             </includes>
-       </dependencySet>
-       <dependencySet>
-             <useProjectArtifact>false</useProjectArtifact>
-             <outputDirectory>org/hibernate/ogm/redis/${hibernate.ogm.redis.module.slot}</outputDirectory>
-             <useTransitiveFiltering>false</useTransitiveFiltering>
-             <unpack>false</unpack>
-             <includes>
-                 <include>org.hibernate.ogm:hibernate-ogm-redis</include>
-             </includes>
-       </dependencySet>
-       <dependencySet>
-             <useProjectArtifact>false</useProjectArtifact>
-             <outputDirectory>org/hibernate/ogm/redis/driver/${hibernate.ogm.redis.module.slot}</outputDirectory>
-             <useTransitiveFiltering>false</useTransitiveFiltering>
-             <unpack>false</unpack>
-             <includes>
-                 <include>biz.paluch.redis:lettuce</include>
-                 <include>org.apache.commons:commons-pool2</include>
-                 <include>io.reactivex:rxjava</include>
-              </includes>
-       </dependencySet>
-       <dependencySet>
-             <useProjectArtifact>false</useProjectArtifact>
-             <outputDirectory>org/hibernate/ogm/couchdb/${hibernate.ogm.couchdb.module.slot}</outputDirectory>
-             <useTransitiveFiltering>false</useTransitiveFiltering>
-             <unpack>false</unpack>
-             <includes>
-                 <include>org.hibernate.ogm:hibernate-ogm-couchdb</include>
-             </includes>
-       </dependencySet>
+
     </dependencySets>
 </assembly>

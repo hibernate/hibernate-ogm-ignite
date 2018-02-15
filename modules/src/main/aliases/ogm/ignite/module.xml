@@ -6,5 +6,5 @@
  ~ See the lgpl.txt file in the root directory or <http://www.gnu.org/licenses/lgpl-2.1.html>.
   -->
 <module-alias xmlns="urn:jboss:module:1.1"
-    name="org.hibernate.ogm.cassandra" slot="main"
-    target-name="org.hibernate.ogm.cassandra" target-slot="${hibernate.ogm.cassandra.module.slot}" />
+              name="org.hibernate.ogm.ignite" slot="main"
+              target-name="org.hibernate.ogm.ignite" target-slot="${hibernate.ogm.ignite.module.slot}" />

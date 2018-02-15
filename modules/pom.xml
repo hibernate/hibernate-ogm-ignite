@@ -22,38 +22,34 @@
     <properties>
         <module.xml.basedir>${basedir}/src/main/modules</module.xml.basedir>
         <module.xml.aliases.basedir>${basedir}/src/main/aliases</module.xml.aliases.basedir>
-		<hibernate.ogm.module.slot>${parsedVersion.majorVersion}.${parsedVersion.minorVersion}</hibernate.ogm.module.slot>
-        <hibernate.ogm.ehcache.module.slot>${hibernate.ogm.module.slot}</hibernate.ogm.ehcache.module.slot>
-        <hibernate.ogm.cassandra.module.slot>${hibernate.ogm.module.slot}</hibernate.ogm.cassandra.module.slot>
-        <hibernate.ogm.couchdb.module.slot>${hibernate.ogm.module.slot}</hibernate.ogm.couchdb.module.slot>
-        <hibernate.ogm.redis.module.slot>${hibernate.ogm.module.slot}</hibernate.ogm.redis.module.slot>
+	<hibernate.ogm.module.slot>${parsedVersion.majorVersion}.${parsedVersion.minorVersion}</hibernate.ogm.module.slot>
+        <hibernate.ogm.ignite.module.slot>${hibernate.ogm.module.slot}</hibernate.ogm.ignite.module.slot>
         <hibernate.hql.module.slot>${hibernateHqlParserVersion}</hibernate.hql.module.slot>
+        <maven.javadoc.skip>true</maven.javadoc.skip>
     </properties>
 
-    <dependencyManagement>
-        <dependencies>
-            <!-- Overriding the version used for tests in OGM (managed in the parent) with the one used by the C* driver -->
-            <dependency>
-                <groupId>com.google.guava</groupId>
-                <artifactId>guava</artifactId>
-                <optional>true</optional>
-                <version>${cassandraGuavaVersion}</version>
-            </dependency>
-        </dependencies>
-    </dependencyManagement>
-
     <dependencies>
+        <dependency>
+            <groupId>org.hibernate.ogm</groupId>
+            <artifactId>hibernate-ogm-ignite</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.ignite</groupId>
+            <artifactId>ignite-core</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.ignite</groupId>
+            <artifactId>ignite-jta</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.ignite</groupId>
+            <artifactId>ignite-indexing</artifactId>
+        </dependency>
     </dependencies>
 
     <build>
         <plugins>
-            <plugin>
-                <artifactId>maven-enforcer-plugin</artifactId>
-                <configuration>
-                    <!-- Skipping it because neo4j uses a different Lucene version -->
-                    <skip>true</skip>
-                </configuration>
-            </plugin>
+
             <plugin>
                 <artifactId>maven-assembly-plugin</artifactId>
             </plugin>
