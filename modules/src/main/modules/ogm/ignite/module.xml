@@ -23,6 +23,8 @@
         <module name="org.jboss.logging" />
         <!-- It requires sun.misc.Unsafe -->
         <module name="sun.jdk" />
+        <!-- need h2 database for SQL -->
+        <module name="com.h2database.h2" />
 
     </dependencies>
 </module>
