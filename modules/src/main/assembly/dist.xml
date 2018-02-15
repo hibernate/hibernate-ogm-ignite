@@ -24,6 +24,17 @@
              <outputDirectory>/org/hibernate/ogm/ignite/main</outputDirectory>
              <filtered>true</filtered>
         </file>
+        <!-- Apache Ignite -->
+        <file>
+            <source>${module.xml.basedir}/ignite/module.xml</source>
+            <outputDirectory>/org/apache/ignite/${org.apache.ignite.module.slot}</outputDirectory>
+            <filtered>true</filtered>
+        </file>
+        <file>
+            <source>${module.xml.aliases.basedir}/ignite/module.xml</source>
+            <outputDirectory>/org/apache/ignite/main</outputDirectory>
+            <filtered>true</filtered>
+        </file>
     </files>
 
     <dependencySets>
@@ -34,10 +45,19 @@
             <unpack>false</unpack>            
             <includes>
                 <include>org.hibernate.ogm:hibernate-ogm-ignite</include>
-                <include>org.apache.ignite:*</include>
+            </includes>
+        </dependencySet>
+        <dependencySet>
+            <useProjectArtifact>false</useProjectArtifact>
+            <outputDirectory>org/apache/ignite/${org.apache.ignite.module.slot}</outputDirectory>
+            <useTransitiveFiltering>false</useTransitiveFiltering>
+            <unpack>false</unpack>
+            <includes>
+                <include>org.apache.ignite:ignite-core</include>
+                <include>org.apache.ignite:ignite-indexing</include>
+                <include>org.apache.ignite:ignite-jta</include>
                 <include>javax.cache:cache-api</include>
                 <include>org.gridgain:ignite-shmem</include>
-                <include>commons-codec:commons-codec</include>
             </includes>
         </dependencySet>
 
