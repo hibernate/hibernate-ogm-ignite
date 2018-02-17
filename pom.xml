@@ -36,6 +36,7 @@
         <jmhVersion>1.0</jmhVersion>
         <bytemanVersion>4.0.0-BETA5</bytemanVersion>
 
+
         <!--
              Following is the default jgroups mcast address.  If you find the testsuite runs very slowly, there
              may be problems with multicast on the interface JGroups uses by default on your machine. You can
@@ -49,6 +50,7 @@
         <version.wildfly>11.0.0.Final</version.wildfly>
         <hibernateWildflyClassifier>wildfly-11-dist</hibernateWildflyClassifier>
         <version.org.wildfly.arquillian>2.1.0.Final</version.org.wildfly.arquillian>
+        <wildflyArquillianVersion>2.1.0.Final</wildflyArquillianVersion>
 
         <!-- Asciidoctor -->
         <hibernate-asciidoctor-theme.version>1.0.1.Final</hibernate-asciidoctor-theme.version>
