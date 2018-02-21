@@ -796,7 +796,6 @@
                 <additionalRuntimeArgLine>--add-modules java.xml.bind</additionalRuntimeArgLine>
             </properties>
         </profile>
-<!--		
         <profile>
             <id>integrationtest</id>
             <activation>
@@ -804,16 +803,13 @@
                     <name>skipITs</name>
                     <value>!true</value>
                 </property>
--->
                 <!-- Skip on Java 9, both because of some NoSQL stores aren't ready and because of WildFly -->
-<!--
                 <jdk>1.8</jdk>
             </activation>
             <modules>
                 <module>integrationtest</module>
             </modules>
         </profile>
--->
         <profile>
             <id>doc</id>
             <activation>
