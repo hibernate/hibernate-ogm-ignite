@@ -46,6 +46,17 @@
             <outputDirectory>/javax/cache/main</outputDirectory>
             <filtered>true</filtered>
         </file>
+        <!-- Apache Ignite internal -->
+        <file>
+            <source>${module.xml.basedir}/ignite-internal/module.xml</source>
+            <outputDirectory>/org/apache/ignite-internal/${org.apache.ignite.module.slot}</outputDirectory>
+            <filtered>true</filtered>
+        </file>
+        <file>
+            <source>${module.xml.aliases.basedir}/ignite-internal/module.xml</source>
+            <outputDirectory>/org/apache/ignite-internal/main</outputDirectory>
+            <filtered>true</filtered>
+        </file>
     </files>
 
     <dependencySets>
@@ -58,6 +69,7 @@
                 <include>org.hibernate.ogm:hibernate-ogm-ignite</include>
             </includes>
         </dependencySet>
+        <!-- Apache Ignite -->
         <dependencySet>
             <useProjectArtifact>false</useProjectArtifact>
             <outputDirectory>org/apache/ignite/${org.apache.ignite.module.slot}</outputDirectory>
@@ -65,10 +77,32 @@
             <unpack>false</unpack>
             <includes>
                 <include>org.apache.ignite:ignite-core</include>
+                <!--<include>org.apache.ignite:ignite-indexing</include>-->
+                <!--<include>org.apache.ignite:ignite-jta</include>-->
+                <!--<include>javax.cache:cache-api</include>-->
+                <!--<include>org.gridgain:ignite-shmem</include>-->
+            </includes>
+        </dependencySet>
+        <!-- Apache Ignite internal -->
+        <dependencySet>
+            <useProjectArtifact>false</useProjectArtifact>
+            <outputDirectory>org/apache/ignite-internal/${org.apache.ignite.module.slot}</outputDirectory>
+            <useTransitiveFiltering>false</useTransitiveFiltering>
+            <unpack>false</unpack>
+            <includes>
                 <include>org.apache.ignite:ignite-indexing</include>
                 <include>org.apache.ignite:ignite-jta</include>
-                <!--<include>javax.cache:cache-api</include>-->
                 <include>org.gridgain:ignite-shmem</include>
+            </includes>
+        </dependencySet>
+        <!-- javax.cache -->
+        <dependencySet>
+            <useProjectArtifact>false</useProjectArtifact>
+            <outputDirectory>javax/cache/1.0.0</outputDirectory>
+            <useTransitiveFiltering>false</useTransitiveFiltering>
+            <unpack>false</unpack>
+            <includes>
+                <include>javax.cache:cache-api</include>
             </includes>
         </dependencySet>
 
