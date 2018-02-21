@@ -59,7 +59,7 @@ public class IgniteModuleMemberRegistrationIT extends ModuleMemberRegistrationSc
 				.Builder( IgniteModuleMemberRegistrationIT.class )
 				.addClasses( PhoneNumber.class, PhoneNumberService.class, EmailAddress.class, ContactManagementService.class, TestErrorHandler.class )
 				.persistenceXml( persistenceXml() )
-				.manifestDependencies( "org.hibernate.ogm:${hibernate-ogm.module.slot} services, org.hibernate.ogm.ignite:${hibernate-ogm.module.slot} services, org.apache.ignite:2.3.0 export" )
+				.manifestDependencies( "org.hibernate.ogm:${hibernate-ogm.module.slot} services, org.hibernate.ogm.ignite:${hibernate-ogm.module.slot} services, org.apache.ignite:${igniteVersion}" )
 				.createDeployment();
 	}
 
