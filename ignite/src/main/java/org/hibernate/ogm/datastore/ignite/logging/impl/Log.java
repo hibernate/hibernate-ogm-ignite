@@ -7,6 +7,7 @@
 package org.hibernate.ogm.datastore.ignite.logging.impl;
 
 import org.hibernate.HibernateException;
+import org.hibernate.ogm.datastore.ignite.IgniteProperties;
 import org.jboss.logging.Logger.Level;
 import org.jboss.logging.annotations.Cause;
 import org.jboss.logging.annotations.LogMessage;
@@ -45,4 +46,7 @@ public interface Log extends org.hibernate.ogm.util.impl.Log {
 
 	@Message(id = 1709, value = "Unable initialize cache '%s'")
 	HibernateException unableToInitializeCache(String cacheName, @Cause Exception cause);
+
+	@Message(id = 1710, value = "Neither " + IgniteProperties.CONFIGURATION_RESOURCE_NAME + " nor " + IgniteProperties.CONFIGURATION_CLASS_NAME + " properties are set")
+	HibernateException configurationNotSet();
 }
