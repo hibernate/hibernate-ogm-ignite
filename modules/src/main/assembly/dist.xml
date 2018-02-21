@@ -35,6 +35,17 @@
             <outputDirectory>/org/apache/ignite/main</outputDirectory>
             <filtered>true</filtered>
         </file>
+        <!-- javax.cache -->
+        <file>
+            <source>${module.xml.basedir}/cache/module.xml</source>
+            <outputDirectory>/javax/cache/${javax.cache.module.slot}</outputDirectory>
+            <filtered>true</filtered>
+        </file>
+        <file>
+            <source>${module.xml.aliases.basedir}/cache/module.xml</source>
+            <outputDirectory>/javax/cache/main</outputDirectory>
+            <filtered>true</filtered>
+        </file>
     </files>
 
     <dependencySets>
@@ -56,7 +67,7 @@
                 <include>org.apache.ignite:ignite-core</include>
                 <include>org.apache.ignite:ignite-indexing</include>
                 <include>org.apache.ignite:ignite-jta</include>
-                <include>javax.cache:cache-api</include>
+                <!--<include>javax.cache:cache-api</include>-->
                 <include>org.gridgain:ignite-shmem</include>
             </includes>
         </dependencySet>

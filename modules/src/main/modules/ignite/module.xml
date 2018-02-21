@@ -10,7 +10,7 @@
         <resource-root path="ignite-core-${org.apache.ignite.module.slot}.jar" />
         <resource-root path="ignite-indexing-${org.apache.ignite.module.slot}.jar" />
         <resource-root path="ignite-jta-${org.apache.ignite.module.slot}.jar" />
-        <resource-root path="cache-api-1.0.0.jar" />
+        <!--<resource-root path="cache-api-1.0.0.jar" />-->
         <!--<resource-root path="commons-codec-1.6.jar" />-->
     </resources>
     <dependencies>
@@ -27,6 +27,6 @@
         <module name="com.h2database.h2" />
         <!--commons-codec-1.10.jar -->
         <module name="org.apache.commons.codec"/>
-
+        <module name="javax.cache" export="true"/>
     </dependencies>
 </module>

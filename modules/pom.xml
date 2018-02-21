@@ -26,6 +26,7 @@
         <hibernate.ogm.ignite.module.slot>${hibernate.ogm.module.slot}</hibernate.ogm.ignite.module.slot>
         <hibernate.hql.module.slot>${hibernateHqlParserVersion}</hibernate.hql.module.slot>
         <org.apache.ignite.module.slot>${igniteVersion}</org.apache.ignite.module.slot>
+        <javax.cache.module.slot>1.0.0</javax.cache.module.slot>
         <maven.javadoc.skip>true</maven.javadoc.skip>
     </properties>
 

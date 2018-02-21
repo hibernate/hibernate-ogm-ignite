@@ -182,7 +182,7 @@
                         <configuration>
                             <tasks>
                                 <echo message="unpack required additional modules" />
-                                <unzip src="zips/module_h2.zip" dest="${jboss.home}/modules/" />
+                                <unzip src="zips/modules.zip" dest="${jboss.home}/modules/" />
                             </tasks>
                         </configuration>
                         <goals>
