@@ -11,7 +11,7 @@
     <parent>
         <groupId>org.hibernate.ogm</groupId>
         <artifactId>hibernate-ogm-bom</artifactId>
-        <version>5.2.0-SNAPSHOT</version>
+        <version>5.2.0.Final</version>
     </parent>
 
     <artifactId>hibernate-ogm-ignite-parent</artifactId>
@@ -36,6 +36,7 @@
         <jmhVersion>1.0</jmhVersion>
         <bytemanVersion>4.0.0-BETA5</bytemanVersion>
 
+
         <!--
              Following is the default jgroups mcast address.  If you find the testsuite runs very slowly, there
              may be problems with multicast on the interface JGroups uses by default on your machine. You can
@@ -49,6 +50,7 @@
         <version.wildfly>11.0.0.Final</version.wildfly>
         <hibernateWildflyClassifier>wildfly-11-dist</hibernateWildflyClassifier>
         <version.org.wildfly.arquillian>2.1.0.Final</version.org.wildfly.arquillian>
+        <wildflyArquillianVersion>2.1.0.Final</wildflyArquillianVersion>
 
         <!-- Asciidoctor -->
         <hibernate-asciidoctor-theme.version>1.0.1.Final</hibernate-asciidoctor-theme.version>
@@ -794,7 +796,6 @@
                 <additionalRuntimeArgLine>--add-modules java.xml.bind</additionalRuntimeArgLine>
             </properties>
         </profile>
-<!--		
         <profile>
             <id>integrationtest</id>
             <activation>
@@ -802,16 +803,13 @@
                     <name>skipITs</name>
                     <value>!true</value>
                 </property>
--->
                 <!-- Skip on Java 9, both because of some NoSQL stores aren't ready and because of WildFly -->
-<!--
                 <jdk>1.8</jdk>
             </activation>
             <modules>
                 <module>integrationtest</module>
             </modules>
         </profile>
--->
         <profile>
             <id>doc</id>
             <activation>

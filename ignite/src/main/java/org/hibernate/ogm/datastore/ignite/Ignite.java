@@ -20,6 +20,8 @@ import org.hibernate.ogm.options.navigation.spi.ConfigurationContext;
  */
 public class Ignite implements DatastoreConfiguration<IgniteGlobalContext> {
 
+	public static final String DATASTORE_PROVIDER_NAME = "org.hibernate.ogm.datastore.ignite.impl.IgniteDatastoreProvider";
+
 	@Override
 	public IgniteGlobalContext getConfigurationBuilder(ConfigurationContext context) {
 		return context.createGlobalContext( IgniteGlobalContextImpl.class, IgniteEntityContextImpl.class, IgnitePropertyContextImpl.class );
