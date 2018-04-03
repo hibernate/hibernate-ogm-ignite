@@ -602,6 +602,10 @@ public class IgniteDialect extends BaseGridDialect implements GridDialect, Multi
 	@Override
 	public ClosableIterator<Tuple> executeBackendQuery(BackendQuery<IgniteQueryDescriptor> backendQuery, QueryParameters queryParameters,
 			TupleContext tupleContext) {
+		Integer firstRow = queryParameters.getRowSelection().getFirstRow();
+		if ( firstRow != null && firstRow.intValue() < 0 ) {
+			throw new IllegalArgumentException( "Query argument firstResult cannot be negative" );
+		}
 		IgniteCache<Object, BinaryObject> cache;
 		if ( backendQuery.getSingleEntityMetadataInformationOrNull() != null ) {
 			cache = provider.getEntityCache( backendQuery.getSingleEntityMetadataInformationOrNull().getEntityKeyMetadata() );
