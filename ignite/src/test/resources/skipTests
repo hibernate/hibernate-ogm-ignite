@@ -32,6 +32,8 @@ org.hibernate.ogm.backendtck.queries.SimpleQueriesWithTablePerClassInheritanceTe
 org.hibernate.ogm.backendtck.queries.SimpleQueriesWithTablePerClassNotSupportedTest
 org.hibernate.ogm.backendtck.type.converter.JpaAttributeConverterTest
 
+org.hibernate.ogm.backendtck.queries.projection.JPQLProjectionTest
+
 //skip polymorphic tests
 org.hibernate.ogm.backendtck.inheritance.tableperclass.depositor.PolymorphicAssociationTest
 org.hibernate.ogm.backendtck.inheritance.tableperclass.family.TablePerClassInheritancePersistTest
