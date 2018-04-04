@@ -19,8 +19,8 @@
     <artifactId>hibernate-ogm-ignite-documentation</artifactId>
     <packaging>pom</packaging>
 
-    <name>Hibernate OGM Documentation</name>
-    <description>Grouping of Hibernate OGM Project documentation modules</description>
+    <name>Hibernate OGM Ignite Documentation</name>
+    <description>Grouping of Hibernate OGM Ignite Project documentation modules</description>
 
     <properties>
         <!-- Skip artifact deployment -->
