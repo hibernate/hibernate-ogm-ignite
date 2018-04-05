@@ -22,7 +22,7 @@
 
     <properties>
         <!-- Ignite -->
-        <igniteVersion>2.3.0</igniteVersion>
+        <igniteVersion>2.4.0</igniteVersion>
         <h2Version>1.4.195</h2Version>
         <cacheApiVersion>1.0.0</cacheApiVersion>
     </properties>
