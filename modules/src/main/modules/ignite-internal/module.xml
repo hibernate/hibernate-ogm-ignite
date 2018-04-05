@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+~ Hibernate OGM, Domain model persistence for NoSQL datastores
+~
+~ License: GNU Lesser General Public License (LGPL), version 2.1 or later
+~ See the lgpl.txt file in the root directory or <http://www.gnu.org/licenses/lgpl-2.1.html>.
+-->
+<module xmlns="urn:jboss:module:1.1" name="org.apache.ignite-internal" slot="${org.apache.ignite.module.slot}">
+    <resources>
+        <resource-root path="ignite-shmem-1.0.0.jar" />
+        <resource-root path="h2-${h2Version}.jar" />
+    </resources>
+    <dependencies>
+        <module name="org.jboss.logging" />
+        <module name="javax.transaction.api" />
+
+        <module name="org.apache.commons.codec" />
+        <!-- It requires sun.misc.Unsafe -->
+        <module name="sun.jdk" />
+        <module name="javax.cache" />
+        <module name="javax.api" />
+    </dependencies>
+</module>
