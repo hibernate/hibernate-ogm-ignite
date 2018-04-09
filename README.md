@@ -1,6 +1,6 @@
 # Hibernate OGM Contrb
 
-*Version: 5.1.0.Final - 01-03-2017*
+*Version: 5.3.1.Final - 09-04-2018*
 
 ## Description
 
