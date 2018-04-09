@@ -1,6 +1,27 @@
 Hibernate OGM Changelog
 =======================
 
+5.3.1.Final (09-04-2018)
+-------------------------
+
+** Bug
+    * OGM-1416 -                - org.hibernate.PropertyAccessException with MongoDB Native Query. Null assigned to primitve 
+    * OGM-1411 - mongodb, tests - MongoDB native query with pagination on aggregate: empty-results for subsequent runs
+    * OGM-1375 - core, mongodb  - We shouldn't create partial entities from a native query
+
+** Improvement
+    * OGM-1441 - ignite         - Remove example module and unrelated content from  Apache Ignite documentation
+    * OGM-1440 - ignite         - Update Ignite to version 2.4.0
+    * OGM-1436 - core           - Update to Hibernate ORM 5.2.16
+    * OGM-1422 - documentation  - Typo in examples, tests and documentation: Vehicule should be Vehicle
+    * OGM-1418 - documentation  - Fix README.md about running the tests with a Neo4j server
+    * OGM-1415 - core           - Upgrade to Hibernate ORM 5.2.15.Final
+    * OGM-1414 - documentation  - Documentation states it's about WildFly 10, whereas it's about 11 (and soon 12)
+
+** New Feature
+    * OGM-1383 - ignite         - Create wildfly module for Apache Ignite
+    * OGM-1382 - ignite, tests  - Create integration test module for Apache Ignite
+
 5.1.0.Final (01-03-2017)
 -------------------------
 
