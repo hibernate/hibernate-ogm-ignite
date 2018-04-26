@@ -24,7 +24,10 @@ import org.hibernate.boot.model.relational.Namespace;
 import org.hibernate.boot.model.relational.Sequence;
 import org.hibernate.mapping.Column;
 import org.hibernate.mapping.Index;
+import org.hibernate.mapping.Selectable;
+import org.hibernate.mapping.SimpleValue;
 import org.hibernate.mapping.Table;
+import org.hibernate.mapping.Value;
 import org.hibernate.ogm.datastore.ignite.logging.impl.Log;
 import org.hibernate.ogm.datastore.ignite.logging.impl.LoggerFactory;
 import org.hibernate.ogm.datastore.ignite.util.StringHelper;
@@ -41,6 +44,7 @@ import org.hibernate.ogm.type.spi.GridType;
 import org.hibernate.ogm.type.spi.TypeTranslator;
 import org.hibernate.persister.entity.EntityPersister;
 import org.hibernate.service.ServiceRegistry;
+import org.hibernate.type.ComponentType;
 import org.hibernate.type.Type;
 
 /**
@@ -170,9 +174,9 @@ public class IgniteCacheInitializer extends BaseSchemaDefiner {
 		QueryIndex queryIndex = new QueryIndex();
 		queryIndex.setIndexType( QueryIndexType.SORTED );
 		LinkedHashMap<String, Boolean> fields = new LinkedHashMap<>();
+		addTableInfo( queryEntity, context, associationKeyMetadata.getTable() );
 		for ( String columnName : associationKeyMetadata.getRowKeyColumnNames() ) {
 			String realColumnName = StringHelper.realColumnName( columnName );
-			queryEntity.addQueryField( realColumnName, STRING_CLASS_NAME, null ); 	//vk: why always String here?
 			fields.put( realColumnName, true );
 		}
 		queryIndex.setFields( fields );
@@ -221,7 +225,6 @@ public class IgniteCacheInitializer extends BaseSchemaDefiner {
 	 * Create indexes for {@code @Index} annotations
 	 * @param queryEntity
 	 * @param context
-	 * @param entityKeyMetadata
 	 */
 	private void addUserIndexes(QueryEntity queryEntity, SchemaDefinitionContext context, String tableName) {
 		Namespace namespace = context.getDatabase().getDefaultNamespace();
@@ -260,15 +263,35 @@ public class IgniteCacheInitializer extends BaseSchemaDefiner {
 			for ( Iterator<Column> columnIterator = table.getColumnIterator(); columnIterator.hasNext(); ) {
 				Column currentColumn = columnIterator.next();
 				String fieldType = fieldType( currentColumn );
-				queryEntity.addQueryField( currentColumn.getName(), fieldType, null );
+				queryEntity.addQueryField( StringHelper.realColumnName( currentColumn.getName() ), fieldType, null );
 			}
 		}
 	}
 
 	private String fieldType(Column currentColumn) {
-		TypeTranslator translator = serviceRegistry.getService( TypeTranslator.class );
-		Type valueType = currentColumn.getValue().getType();
-		GridType gridType = translator.getType( valueType );
+		Value value = currentColumn.getValue();
+		Type type = value.getType();
+		while ( type.isEntityType() || type.isComponentType() ) {
+			if ( type.isEntityType() ) {
+				type = ( (SimpleValue) value ).getMetadata().getIdentifierType( type.getName() );
+			}
+			if ( type.isComponentType() ) {
+				int i = 0;
+				boolean columnFound = false;
+				// search which nested property is mapped to the given column
+				for ( Iterator<Selectable> ci = value.getColumnIterator(); ci.hasNext(); ++i ) {
+					if ( currentColumn.getName().equals( ci.next().getText() ) ) {
+						type = ( (ComponentType) type ).getSubtypes()[i];
+						columnFound = true;
+						break;
+					}
+				}
+				if ( !columnFound ) {
+					throw new IllegalArgumentException( "Cannot determine type for column " + currentColumn );
+				}
+			}
+		}
+		GridType gridType = serviceRegistry.getService( TypeTranslator.class ).getType( type );
 		if ( gridType instanceof EnumType ) {
 			return enumFieldType( (EnumType) gridType );
 		}
@@ -278,7 +301,7 @@ public class IgniteCacheInitializer extends BaseSchemaDefiner {
 		if ( gridType instanceof NumericBooleanType ) {
 			return INTEGER_CLASS_NAME;
 		}
-		Class<?> returnedClass = valueType.getReturnedClass();
+		Class<?> returnedClass = type.getReturnedClass();
 		if ( Character.class.equals( returnedClass ) ) {
 			return STRING_CLASS_NAME;
 		}

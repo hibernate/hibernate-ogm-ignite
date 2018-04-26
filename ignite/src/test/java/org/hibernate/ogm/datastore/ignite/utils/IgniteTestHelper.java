@@ -10,6 +10,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.IdentityHashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -215,14 +216,26 @@ public class IgniteTestHelper implements GridDialectTestHelper {
 	public void prepareDatabase(SessionFactory arg0) {
 	}
 
-	public static Set<QueryIndex> getIndexes(OgmSessionFactory sessionFactory, Class<?> entityClass) {
-		Set<QueryIndex> result = new HashSet<>();
-		Map<String, EntityPersister> m = ( (SessionFactoryImplementor) sessionFactory ).getEntityPersisters();
+	private static CacheConfiguration getCacheConfiguration(OgmSessionFactory sessionFactory, Class<?> entityClass) {
 		OgmEntityPersister entityPersister = (OgmEntityPersister) ( (SessionFactoryImplementor) sessionFactory ).locateEntityPersister( entityClass );
 		IgniteCache<Object, BinaryObject> cache = getProvider( sessionFactory ).getEntityCache( entityPersister.getEntityKeyMetadata() );
-		CacheConfiguration<Object, BinaryObject> cacheConfig = cache.getConfiguration( CacheConfiguration.class );
+		return cache.getConfiguration( CacheConfiguration.class );
+	}
+
+	public static Set<QueryIndex> getIndexes(OgmSessionFactory sessionFactory, Class<?> entityClass) {
+		Set<QueryIndex> result = new HashSet<>();
+		CacheConfiguration<Object, BinaryObject> cacheConfig = getCacheConfiguration( sessionFactory, entityClass );
 		for ( QueryEntity queryEntity : cacheConfig.getQueryEntities() ) {
 			result.addAll( queryEntity.getIndexes() );
+		}
+		return result;
+	}
+
+	public static Map<String, String> getFields(OgmSessionFactory sessionFactory, Class<?> entityClass) {
+		Map<String, String> result = new LinkedHashMap<>();
+		CacheConfiguration<Object, BinaryObject> cacheConfig = getCacheConfiguration( sessionFactory, entityClass );
+		for ( QueryEntity queryEntity : cacheConfig.getQueryEntities() ) {
+			result.putAll( queryEntity.getFields() );
 		}
 		return result;
 	}
