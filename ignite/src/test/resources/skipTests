@@ -14,7 +14,8 @@ org.hibernate.ogm.backendtck.optimisticlocking.OptimisticLockingTest#updatingEnt
 org.hibernate.ogm.backendtck.queries.CompositeIdQueriesTest
 org.hibernate.ogm.backendtck.queries.QueriesWithAssociationsTest
 org.hibernate.ogm.backendtck.queries.QueriesWithEmbeddedCollectionTest
-org.hibernate.ogm.backendtck.queries.QueriesWithEmbeddedTest
+org.hibernate.ogm.backendtck.queries.QueriesWithEmbeddedTest#testQueryWithEmbeddablePropertyInSelectClauseWithOneResult
+org.hibernate.ogm.backendtck.queries.QueriesWithEmbeddedTest#testQueryWithEmbeddablePropertyInSelectClause
 org.hibernate.ogm.backendtck.queries.SimpleQueriesTest#testInQueryOnAssociatedEntity
 org.hibernate.ogm.backendtck.queries.SimpleQueriesTest#testIsNotNullQueryOnAssociatedEntity
 org.hibernate.ogm.backendtck.queries.SimpleQueriesTest#testIsNullQueryOnPropertyOfAssociatedEntity
