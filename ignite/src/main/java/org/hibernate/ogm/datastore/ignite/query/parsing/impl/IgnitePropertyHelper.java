@@ -17,12 +17,12 @@ import org.hibernate.engine.spi.SessionFactoryImplementor;
 import org.hibernate.hql.ast.spi.EntityNamesResolver;
 import org.hibernate.ogm.datastore.ignite.logging.impl.Log;
 import org.hibernate.ogm.datastore.ignite.logging.impl.LoggerFactory;
+import org.hibernate.ogm.datastore.ignite.util.StringHelper;
 import org.hibernate.ogm.model.key.spi.EntityKeyMetadata;
 import org.hibernate.ogm.persister.impl.OgmCollectionPersister;
 import org.hibernate.ogm.persister.impl.OgmEntityPersister;
 import org.hibernate.ogm.query.parsing.impl.ParserPropertyHelper;
 import org.hibernate.ogm.util.impl.ArrayHelper;
-import org.hibernate.ogm.util.impl.StringHelper;
 import org.hibernate.persister.entity.Joinable;
 import org.hibernate.type.AssociationType;
 import org.hibernate.type.Type;
@@ -61,7 +61,6 @@ public class IgnitePropertyHelper extends ParserPropertyHelper {
 
 		String propertyEntityType = entityType;
 		String propertyAlias = entityAlias;
-		String propertyName;
 
 		List<String> currentPropertyPath = new ArrayList<>();
 		List<String> lastAssociationPath = Collections.emptyList();
@@ -90,12 +89,9 @@ public class IgnitePropertyHelper extends ParserPropertyHelper {
 					isLastElementAssociation = false;
 				}
 			}
-			else if ( currentPropertyType.isComponentType()
-					&& !isIdProperty( currentPersister, propertyPath.subList( lastAssociationPath.size(), propertyPath.size() ) ) ) {
-				// we are in the embedded case and the embedded is not the id of the entity (the id is stored as normal
-				// properties)
-				throw new NotYetImplementedException();
-//				propertyAlias = aliasResolver.createAliasForEmbedded( entityAlias, currentPropertyPath, optionalMatch );
+			else if ( currentPropertyType.isComponentType() ) {
+				isLastElementAssociation = false;
+				break;
 			}
 			else {
 				isLastElementAssociation = false;
@@ -103,28 +99,22 @@ public class IgnitePropertyHelper extends ParserPropertyHelper {
 			depth++;
 		}
 
+		String propertyName;
 		if ( isLastElementAssociation ) {
 			// even the last element is an association, we need to find a suitable identifier property
 			propertyName = getSessionFactory().getEntityPersister( propertyEntityType ).getIdentifierPropertyName();
 		}
 		else {
-			// the last element is a property so we can build the test with this property
+			// the last element is a property so we can build the rest with this property
 			propertyName = getColumnName( propertyEntityType, propertyPath.subList( lastAssociationPath.size(), propertyPath.size() ) );
 		}
 		return new PropertyIdentifier( propertyAlias, propertyName );
 	}
 
+
 	public String getColumnName(String entityType, List<String> propertyPathWithoutAlias) {
-		return getColumnName( getPersister( entityType ), propertyPathWithoutAlias );
-	}
-
-
-	private String getColumnName(OgmEntityPersister persister, List<String> propertyPathWithoutAlias) {
-		String columnName = getColumn( persister, propertyPathWithoutAlias );
-		if ( isNestedProperty( propertyPathWithoutAlias ) ) {
-			columnName = columnName.substring( columnName.lastIndexOf( '.' ) + 1, columnName.length() );
-		}
-		return columnName;
+		String columnName = getColumn( getPersister( entityType ), propertyPathWithoutAlias );
+		return StringHelper.realColumnName( columnName );
 	}
 
 	/**
@@ -135,7 +125,7 @@ public class IgnitePropertyHelper extends ParserPropertyHelper {
 	 * @return {@code true} if the property is part of the id, {@code false} otherwise.
 	 */
 	public boolean isIdProperty(OgmEntityPersister persister, List<String> namesWithoutAlias) {
-		String join = StringHelper.join( namesWithoutAlias, "." );
+		String join = String.join( ".", namesWithoutAlias );
 		Type propertyType = persister.getPropertyType( namesWithoutAlias.get( 0 ) );
 		String[] identifierColumnNames = persister.getIdentifierColumnNames();
 		if ( propertyType.isComponentType() ) {
