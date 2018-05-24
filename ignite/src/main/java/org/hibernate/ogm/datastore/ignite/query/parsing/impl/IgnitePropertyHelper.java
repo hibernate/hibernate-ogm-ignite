@@ -14,6 +14,7 @@ import java.util.Map;
 
 import org.hibernate.cfg.NotYetImplementedException;
 import org.hibernate.engine.spi.SessionFactoryImplementor;
+import org.hibernate.hql.ast.origin.hql.resolve.path.PropertyPath;
 import org.hibernate.hql.ast.spi.EntityNamesResolver;
 import org.hibernate.ogm.datastore.ignite.logging.impl.Log;
 import org.hibernate.ogm.datastore.ignite.logging.impl.LoggerFactory;
@@ -33,7 +34,11 @@ import org.hibernate.type.Type;
 public class IgnitePropertyHelper extends ParserPropertyHelper {
 	private static final Log log = LoggerFactory.getLogger();
 
-	private final Map<String, String> aliasByEntityName = new HashMap<String, String>();
+	private final Map<String, String> aliasByEntityName = new HashMap<>();
+	private final Map<String, String> entityNameByAlias = new HashMap<>();
+
+	private String rootEntityType;
+	private PropertyPath selectionPath;
 
 	public IgnitePropertyHelper(SessionFactoryImplementor sessionFactory, EntityNamesResolver entityNames) {
 		super( sessionFactory, entityNames );
@@ -45,76 +50,149 @@ public class IgnitePropertyHelper extends ParserPropertyHelper {
 					? value : super.convertToBackendType( entityType, propertyPath, value );
 	}
 
+	@Override
+	protected Type getPropertyType(String entityType, List<String> propertyPath) {
+		return super.getPropertyType( entityType, propertyPath );
+	}
+
+
+	void setRootEntity(String entityName) {
+		if ( rootEntityType != null && !rootEntityType.equals( entityName ) ) {
+			throw new NotYetImplementedException( "Multiple root entities" );
+		}
+		rootEntityType = entityName;
+	}
+
+	String getRootEntity() {
+		return rootEntityType;
+	}
+
+
+	/**
+	 * Sets the selection path. We should do this explicitly,
+	 * because selected entity may differ from root entity
+	 */
+	void setSelectionPath(PropertyPath path) {
+		if ( selectionPath != null ) {
+			throw new NotYetImplementedException( "Multiple selections" );
+		}
+		if ( path.getNodes().size() > 1 || !path.getFirstNode().isAlias() ) {
+			throw new NotYetImplementedException( "Projection selection" );
+		}
+		selectionPath = path;
+	}
+
+	PropertyPath getSelectionPath() {
+		return selectionPath;
+	}
+
+	String getEntityNameByAlias(String alias) {
+		return entityNameByAlias.get( StringHelper.sqlNormalize( alias ) );
+	}
+
+
 	/**
 	 * Returns the {@link PropertyIdentifier} for the given property path.
 	 *
 	 * In passing, it creates all the necessary aliases for embedded/associations.
 	 *
-	 * @param entityType the type of the entity
-	 * @param propertyPath the path to the property without aliases
+	 * @param path the path to the property
+	 * @param targetEntityType the type of the entity
 	 * @return the {@link PropertyIdentifier}
 	 */
-	public PropertyIdentifier getPropertyIdentifier(String entityType, List<String> propertyPath) {
-		// we analyze the property path to find all the associations/embedded which are in the way and create proper
-		// aliases for them
-		String entityAlias = findAliasForType( entityType );
+	PropertyIdentifier getPropertyIdentifier(PropertyPath path, String targetEntityType) {
+		// we analyze the property path to find all the associations/embedded
+		// which are in the way and create proper aliases for them
 
-		String propertyEntityType = entityType;
+		List<String> propertyPath = path.getNodeNamesWithoutAlias();
+		String entityAlias;
+		boolean isLastElementAssociation = true;
+		if ( path.getFirstNode().isAlias() ) {
+			entityAlias = path.getFirstNode().getName();
+		}
+		else {
+			entityAlias = findAliasForType( targetEntityType );
+		}
+		String propertyEntityType = entityNameByAlias.get( entityAlias );
+		if ( propertyEntityType == null ) {
+			propertyEntityType = targetEntityType;
+		}
+
 		String propertyAlias = entityAlias;
+		String propertyName;
 
 		List<String> currentPropertyPath = new ArrayList<>();
-		List<String> lastAssociationPath = Collections.emptyList();
-		OgmEntityPersister currentPersister = getPersister( entityType );
+		List<String> lastAssociationPath = new ArrayList<>();
 
-		int requiredDepth = propertyPath.size();
-		boolean isLastElementAssociation = false;
-		int depth = 1;
+		OgmEntityPersister currentPersister = getPersister( propertyEntityType );
+		OgmEntityPersister predPersister = currentPersister;
+		String predJoinAlias = entityAlias;
+
 		for ( String property : propertyPath ) {
 			currentPropertyPath.add( property );
-			Type currentPropertyType = getPropertyType( entityType, currentPropertyPath );
-
-			// determine if the current property path is still part of requiredPropertyMatch
-			boolean optionalMatch = depth > requiredDepth;
+			Type currentPropertyType = getPropertyType( propertyEntityType, Collections.singletonList( property ) );
 
 			if ( currentPropertyType.isAssociationType() ) {
+				propertyEntityType = currentPropertyType.getName();
+				currentPersister = getPersister( propertyEntityType );
 				AssociationType associationPropertyType = (AssociationType) currentPropertyType;
 				Joinable associatedJoinable = associationPropertyType.getAssociatedJoinable( getSessionFactory() );
 				if ( associatedJoinable.isCollection()
-						&& ( (OgmCollectionPersister) associatedJoinable ).getType().isComponentType() ) {
+					&& ( (OgmCollectionPersister) associatedJoinable ).getType().isComponentType() ) {
 					// we have a collection of embedded
-					throw new NotYetImplementedException();
+					throw new NotYetImplementedException( "Query with collection of embeddables" );
 //					propertyAlias = aliasResolver.createAliasForEmbedded( entityAlias, currentPropertyPath, optionalMatch );
 				}
 				else {
-					isLastElementAssociation = false;
+					// last in path? - no need for join
+					if ( currentPropertyPath.size() == propertyPath.size() ) {
+						propertyName = getColumnName( predPersister.getEntityType().getName(),
+							Collections.singletonList( property ) );
+						return new PropertyIdentifier( predJoinAlias, propertyName );
+					}
+					// else, we register an implicit join
+					lastAssociationPath.add( property );
+					throw new NotYetImplementedException( "Query on associated property" );
+					// predPersister = currentPersister;
+					// isLastElementAssociation = true;
 				}
 			}
-			else if ( currentPropertyType.isComponentType() ) {
-				isLastElementAssociation = false;
-				break;
+			else if ( currentPropertyType.isComponentType()
+				&& !isIdProperty( currentPersister, propertyPath.subList( lastAssociationPath.size(), propertyPath.size() ) ) ) {
+				// we are in the embedded case and the embedded is not the id of the entity (the id is stored as normal
+				// properties)
+				String embeddedProperty = String.join( ".", propertyPath.subList( lastAssociationPath.size(), propertyPath.size() ) );
+				String[] columns = currentPersister.getPropertyColumnNames( embeddedProperty );
+				if ( columns.length > 1 ) {
+					throw new NotYetImplementedException( "Query with composite-ID association" );
+				}
+				return new PropertyIdentifier( propertyAlias, columns[0] );
 			}
 			else {
 				isLastElementAssociation = false;
 			}
-			depth++;
 		}
 
-		String propertyName;
 		if ( isLastElementAssociation ) {
 			// even the last element is an association, we need to find a suitable identifier property
-			propertyName = getSessionFactory().getEntityPersister( propertyEntityType ).getIdentifierPropertyName();
+			propertyName = getPersister( propertyEntityType ).getIdentifierPropertyName();
 		}
 		else {
 			// the last element is a property so we can build the rest with this property
 			propertyName = getColumnName( propertyEntityType, propertyPath.subList( lastAssociationPath.size(), propertyPath.size() ) );
 		}
-		return new PropertyIdentifier( propertyAlias, propertyName );
+		return new PropertyIdentifier( predJoinAlias, propertyName );
 	}
 
 
 	public String getColumnName(String entityType, List<String> propertyPathWithoutAlias) {
 		String columnName = getColumn( getPersister( entityType ), propertyPathWithoutAlias );
 		return StringHelper.realColumnName( columnName );
+	}
+
+
+	public String getTableName(String entityType) {
+		return getPersister( entityType ).getEntityKeyMetadata().getTable();
 	}
 
 	/**
@@ -145,44 +223,14 @@ public class IgnitePropertyHelper extends ParserPropertyHelper {
 		return persister.getEntityKeyMetadata();
 	}
 
-	/**
-	 * Checks whether the supplied character is a letter.
-	 */
-	private boolean isLetter(int c) {
-		return isUpperCaseLetter( c ) || isLowerCaseLetter( c );
-	}
-	/**
-	 * Checks whether the supplied character is an upper-case letter.
-	 */
-	private boolean isUpperCaseLetter(int c) {
-		return ( c >= 65 && c <= 90 ); // A - Z
-	}
-	/**
-	 * Checks whether the supplied character is an lower-case letter.
-	 */
-	private boolean isLowerCaseLetter(int c) {
-		return ( c >= 97 && c <= 122 ); // a - z
-	}
-	/**
-	 * Checks whether the supplied character is a number
-	 */
-	private boolean isNumber(int c) {
-		return ( c >= 48 && c <= 57 ); // 0 - 9
-	}
-
 	public void registerEntityAlias(String entityName, String alias) {
-		StringBuilder sb = new StringBuilder( alias );
-		for ( int i = 0; i < sb.length(); i++ ) {
-			char c = sb.charAt( i );
-			if ( c == '_' || isLetter( c ) ||  ( i > 0 && isNumber( c ) ) ) {
-				continue;
-			}
-			sb.setCharAt( i, '_' );
-		}
-		aliasByEntityName.put( entityName, sb.toString() );
+		alias = StringHelper.sqlNormalize( alias );
+		aliasByEntityName.put( entityName, alias );
+		entityNameByAlias.put( alias, entityName );
 	}
 
 	public String findAliasForType(String entityType) {
 		return aliasByEntityName.get( entityType );
 	}
+
 }
