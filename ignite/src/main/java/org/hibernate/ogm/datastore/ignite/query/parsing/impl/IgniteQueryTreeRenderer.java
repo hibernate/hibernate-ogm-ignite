@@ -126,7 +126,8 @@ public class IgniteQueryTreeRenderer implements AstProcessor {
 					entityType = propertyHelper.getRootEntity();
 				}
 				PropertyIdentifier identifier = propertyHelper.getPropertyIdentifier( p, entityType );
-				builder.append( identifier.getAlias() ).append( '.' ).append( identifier.getPropertyName() );
+				String columnName = StringHelper.realColumnName( identifier.getPropertyName() );
+				builder.append( identifier.getAlias() ).append( '.' ).append( columnName );
 				break;
 
 			case HQLParser.NAMED_PARAM:  // :param
