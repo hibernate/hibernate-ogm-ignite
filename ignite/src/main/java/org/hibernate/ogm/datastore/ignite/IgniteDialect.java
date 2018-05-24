@@ -613,27 +613,25 @@ public class IgniteDialect extends BaseGridDialect implements GridDialect, Multi
 		else {
 			throw new UnsupportedOperationException( "Not implemented. Can't find cache name" );
 		}
-		List indexedParameters = null;
-		if ( !queryParameters.getNamedParameters().isEmpty() ) {
-			indexedParameters = new ArrayList( queryParameters.getNamedParameters().size() );
-			for ( Map.Entry<String, TypedGridValue> entry : queryParameters.getNamedParameters().entrySet() ) {
-				indexedParameters.add( entry.getValue().getValue() );
+		List<Object> parameterValues;
+		if ( !queryParameters.getPositionalParameters().isEmpty() ) {
+			if ( !queryParameters.getNamedParameters().isEmpty() ) {
+				throw new IllegalArgumentException( "Mixing positional and named parameters" );
 			}
-		}
-		else if ( !queryParameters.getPositionalParameters().isEmpty() ) {
-			indexedParameters = new ArrayList( queryParameters.getPositionalParameters().size() );
+			parameterValues = new ArrayList<>( queryParameters.getPositionalParameters().size() );
 			for ( TypedGridValue typedGridValue : queryParameters.getPositionalParameters() ) {
-				indexedParameters.add( typedGridValue.getValue() );
+				parameterValues.add( typedGridValue.getValue() );
 			}
 		}
 		else {
-			indexedParameters = backendQuery.getQuery().getIndexedParameters() != null ? backendQuery.getQuery().getIndexedParameters() : null;
+			parameterValues = backendQuery.getQuery().getIndexedParameters();
 		}
+
 		QueryHints hints = ( new QueryHints.Builder( null /* queryParameters.getQueryHints() */ ) ).build();
 		SqlFieldsQuery sqlQuery = provider.createSqlFieldsQueryWithLog(
 				backendQuery.getQuery().getSql(),
 				hints,
-				indexedParameters != null ? indexedParameters.toArray() : null
+				parameterValues.toArray()
 		);
 		Iterable<List<?>> result = executeWithHints( cache, sqlQuery, hints );
 
