@@ -14,7 +14,6 @@ import org.hibernate.engine.spi.SessionFactoryImplementor;
 import org.hibernate.hql.ast.spi.AstProcessingChain;
 import org.hibernate.hql.ast.spi.AstProcessor;
 import org.hibernate.hql.ast.spi.EntityNamesResolver;
-import org.hibernate.hql.ast.spi.QueryRendererProcessor;
 import org.hibernate.hql.ast.spi.QueryResolverProcessor;
 import org.hibernate.ogm.datastore.ignite.logging.impl.Log;
 import org.hibernate.ogm.datastore.ignite.logging.impl.LoggerFactory;
@@ -27,24 +26,24 @@ public class IgniteProcessingChain implements AstProcessingChain<IgniteQueryPars
 	private static final Log log = LoggerFactory.getLogger();
 
 	private final QueryResolverProcessor resolverProcessor;
-	private final QueryRendererProcessor rendererProcessor;
-	private final IgniteQueryRendererDelegate rendererDelegate;
+	private final IgniteQueryRenderer queryRenderer;
+	private final IgniteQueryTreeRenderer queryTreeRenderer;
 
-	public IgniteProcessingChain(SessionFactoryImplementor sessionFactory, EntityNamesResolver entityNamesResolver, Map<String, Object> namedParameters) {
+	IgniteProcessingChain(SessionFactoryImplementor sessionFactory, EntityNamesResolver entityNamesResolver, Map<String, Object> namedParameters) {
 		IgnitePropertyHelper propertyHelper = new IgnitePropertyHelper( sessionFactory, entityNamesResolver );
 		resolverProcessor = new QueryResolverProcessor( new IgniteQueryResolverDelegate( sessionFactory, propertyHelper ) );
-		rendererDelegate = new IgniteQueryRendererDelegate( sessionFactory, propertyHelper, entityNamesResolver, namedParameters );
-		rendererProcessor = new QueryRendererProcessor( rendererDelegate );
+		queryRenderer = new IgniteQueryRenderer( propertyHelper, namedParameters );
+		queryTreeRenderer = new IgniteQueryTreeRenderer( propertyHelper, queryRenderer );
 	}
 
 	@Override
 	public Iterator<AstProcessor> iterator() {
-		return Arrays.asList( resolverProcessor, rendererProcessor ).iterator();
+		return Arrays.asList( resolverProcessor, queryTreeRenderer ).iterator();
 	}
 
 	@Override
 	public IgniteQueryParsingResult getResult() {
-		return rendererDelegate.getResult();
+		return queryRenderer.getResult();
 	}
 
 }

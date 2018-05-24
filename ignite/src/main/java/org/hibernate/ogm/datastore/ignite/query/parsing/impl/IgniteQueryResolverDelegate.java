@@ -6,6 +6,7 @@
  */
 package org.hibernate.ogm.datastore.ignite.query.parsing.impl;
 
+import org.antlr.runtime.tree.Tree;
 import org.hibernate.engine.spi.SessionFactoryImplementor;
 import org.hibernate.hql.ast.common.JoinType;
 import org.hibernate.hql.ast.origin.hql.resolve.path.PathedPropertyReference;
@@ -17,8 +18,6 @@ import org.hibernate.ogm.datastore.ignite.logging.impl.LoggerFactory;
 import org.hibernate.ogm.datastore.ignite.util.StringHelper;
 import org.hibernate.type.AssociationType;
 import org.hibernate.type.Type;
-
-import org.antlr.runtime.tree.Tree;
 
 /**
  * Query resolver delegate targeting Ignite queries.
@@ -147,6 +146,7 @@ public class IgniteQueryResolverDelegate implements QueryResolverDelegate {
 
 	@Override
 	public void propertyPathCompleted(PropertyPath path) {
+		// TODO: resolve selection path(s) in IgniteQueryTreeRenderer
 		if ( definingSelect ) {
 			propertyHelper.addSelectionPath( path );
 		}

@@ -42,6 +42,22 @@ public class StringHelper {
 		return value == null || value.length() == 0;
 	}
 
+	public static void escapeString(StringBuilder builder, String input, char escapeChar) {
+		builder.append( escapeChar );
+		if ( input.contains( String.valueOf( escapeChar ) ) ) {
+			for ( char c : input.toCharArray() ) {
+				if ( c == escapeChar ) {
+					builder.append( c );
+				}
+				builder.append( c );
+			}
+		}
+		else {
+			builder.append( input );
+		}
+		builder.append( escapeChar );
+	}
+
 	/**
 	 * Normalizes an identifier to make it SQL-safe,
 	 * e. g. "&lt;gen_0&gt;" -&gt; "_gen_0_"
