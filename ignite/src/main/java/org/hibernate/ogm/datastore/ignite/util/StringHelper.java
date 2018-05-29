@@ -41,4 +41,22 @@ public class StringHelper {
 	public static boolean isEmpty(String value) {
 		return value == null || value.length() == 0;
 	}
+
+	/**
+	 * Normalizes an identifier to make it SQL-safe,
+	 * e. g. "&lt;gen_0&gt;" -&gt; "_gen_0_"
+	 */
+	public static String sqlNormalize(String identifier) {
+		StringBuilder sb = new StringBuilder( identifier );
+		for ( int i = 0; i < sb.length(); i++ ) {
+			char c = sb.charAt( i );
+			if ( c == '_'
+				|| ( c >= 'A' && c <= 'Z') || ( c >= 'a' && c <= 'z' )
+				|| ( i > 0 && c >= '0' && c <= '9' ) ) {
+				continue;
+			}
+			sb.setCharAt( i, '_' );
+		}
+		return sb.toString();
+	}
 }

@@ -6,10 +6,7 @@
  */
 package org.hibernate.ogm.datastore.ignite.query.parsing.impl;
 
-import java.util.HashMap;
-import java.util.Map;
-
-import org.antlr.runtime.tree.Tree;
+import org.hibernate.engine.spi.SessionFactoryImplementor;
 import org.hibernate.hql.ast.common.JoinType;
 import org.hibernate.hql.ast.origin.hql.resolve.path.PathedPropertyReference;
 import org.hibernate.hql.ast.origin.hql.resolve.path.PathedPropertyReferenceSource;
@@ -17,6 +14,11 @@ import org.hibernate.hql.ast.origin.hql.resolve.path.PropertyPath;
 import org.hibernate.hql.ast.spi.QueryResolverDelegate;
 import org.hibernate.ogm.datastore.ignite.logging.impl.Log;
 import org.hibernate.ogm.datastore.ignite.logging.impl.LoggerFactory;
+import org.hibernate.ogm.datastore.ignite.util.StringHelper;
+import org.hibernate.type.AssociationType;
+import org.hibernate.type.Type;
+
+import org.antlr.runtime.tree.Tree;
 
 /**
  * Query resolver delegate targeting Ignite queries.
@@ -27,36 +29,41 @@ public class IgniteQueryResolverDelegate implements QueryResolverDelegate {
 
 	private static final Log log = LoggerFactory.getLogger();
 
-	/**
-	 * Persister space: keep track of aliases and entity names.
-	 */
-	private final Map<String, String> entityNameByAlias = new HashMap<String, String>();
-	private final Map<String, PropertyPath> propertyPathByAlias = new HashMap<String, PropertyPath>();
-
 	private final IgnitePropertyHelper propertyHelper;
+	private final SessionFactoryImplementor sessionFactory;
 
 	private String currentAlias;
+	private boolean definingSelect = false;
 
-	public IgniteQueryResolverDelegate(IgnitePropertyHelper propertyHelper) {
+
+	IgniteQueryResolverDelegate(SessionFactoryImplementor sessionFactory, IgnitePropertyHelper propertyHelper) {
+		this.sessionFactory = sessionFactory;
 		this.propertyHelper = propertyHelper;
 	}
 
+
 	@Override
 	public void registerPersisterSpace(Tree entityName, Tree alias) {
-		String put = entityNameByAlias.put( alias.getText(), entityName.getText() );
-		if ( put != null && !put.equalsIgnoreCase( entityName.getText() ) ) {
-			throw new UnsupportedOperationException(
-					"Alias reuse currently not supported: alias " + alias.getText()
-					+ " already assigned to type " + put );
-		}
+		propertyHelper.setRootEntity( entityName.getText() );
 		propertyHelper.registerEntityAlias( entityName.getText(), alias.getText() );
 	}
 
+
 	@Override
-	public void registerJoinAlias(Tree alias, PropertyPath path) {
-		PropertyPath put = propertyPathByAlias.put( alias.getText(), path );
-		if ( put != null && !put.equals( path ) ) {
-			throw new UnsupportedOperationException( "Alias reuse currently not supported: alias " + alias + " already assigned to type " + put );
+	public void registerJoinAlias(Tree aliasNode, PropertyPath path) {
+		String alias = aliasNode.getText();
+		Type type = propertyHelper.getPropertyType(
+			propertyHelper.getEntityNameByAlias( path.getFirstNode().getName() ),
+			path.getNodeNamesWithoutAlias() );
+		if ( type.isEntityType() ) {
+			propertyHelper.registerEntityAlias( type.getName(), alias );
+		}
+		else if ( type.isAssociationType() ) {
+			propertyHelper.registerEntityAlias(
+				( (AssociationType) type ).getAssociatedEntityName( sessionFactory ), alias );
+		}
+		else {
+			throw new IllegalArgumentException( "Failed to determine type for alias '" + alias + "'" );
 		}
 	}
 
@@ -67,30 +74,28 @@ public class IgniteQueryResolverDelegate implements QueryResolverDelegate {
 
 	@Override
 	public PathedPropertyReferenceSource normalizeUnqualifiedPropertyReference(Tree property) {
-		return new PathedPropertyReference( property.getText(), null, isAlias( property ) );
+		return normalizeUnqualifiedRoot( property );
 	}
 
 	@Override
 	public boolean isPersisterReferenceAlias() {
-		return isEntityAlias( currentAlias );
+		return currentAlias != null && isAlias( currentAlias );
 	}
 
 	@Override
 	public PathedPropertyReferenceSource normalizeUnqualifiedRoot(Tree root) {
-		return new PathedPropertyReference( root.getText(), null, isAlias( root ) );
+		String identifier = StringHelper.sqlNormalize( root.getText() );
+		boolean isAlias = isAlias( identifier );
+		return new PathedPropertyReference( isAlias ? identifier : root.getText(), null, isAlias );
 	}
 
-	private boolean isAlias(Tree root) {
-		return isEntityAlias( root.getText() ) || propertyPathByAlias.containsKey( root.getText() );
-	}
-
-	private boolean isEntityAlias(String alias) {
-		return entityNameByAlias.containsKey( alias );
+	private boolean isAlias(String identifier) {
+		return propertyHelper.getEntityNameByAlias( identifier ) != null;
 	}
 
 	@Override
 	public PathedPropertyReferenceSource normalizeQualifiedRoot(Tree root) {
-		String entityNameForAlias = entityNameByAlias.get( root.getText() );
+		String entityNameForAlias = propertyHelper.getEntityNameByAlias( root.getText() );
 
 		if ( entityNameForAlias == null ) {
 			throw log.getUnknownAliasException( root.getText() );
@@ -132,16 +137,19 @@ public class IgniteQueryResolverDelegate implements QueryResolverDelegate {
 
 	@Override
 	public void pushSelectStrategy() {
-		//nothing to do
+		definingSelect = true;
 	}
 
 	@Override
 	public void popStrategy() {
-		//nothing to do
+		definingSelect = false;
 	}
 
 	@Override
 	public void propertyPathCompleted(PropertyPath path) {
-		//nothing to do
+		if ( definingSelect ) {
+			propertyHelper.addSelectionPath( path );
+		}
 	}
+
 }

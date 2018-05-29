@@ -14,6 +14,7 @@ import java.util.Map;
 
 import org.hibernate.cfg.NotYetImplementedException;
 import org.hibernate.engine.spi.SessionFactoryImplementor;
+import org.hibernate.hql.ast.origin.hql.resolve.path.PropertyPath;
 import org.hibernate.hql.ast.spi.EntityNamesResolver;
 import org.hibernate.ogm.datastore.ignite.logging.impl.Log;
 import org.hibernate.ogm.datastore.ignite.logging.impl.LoggerFactory;
@@ -33,7 +34,12 @@ import org.hibernate.type.Type;
 public class IgnitePropertyHelper extends ParserPropertyHelper {
 	private static final Log log = LoggerFactory.getLogger();
 
-	private final Map<String, String> aliasByEntityName = new HashMap<String, String>();
+	private final Map<String, String> aliasByEntityName = new HashMap<>();
+	private final Map<String, String> entityNameByAlias = new HashMap<>();
+	private final List<PropertyPath> selections = new ArrayList<>();
+
+	private String rootEntityType;
+
 
 	public IgnitePropertyHelper(SessionFactoryImplementor sessionFactory, EntityNamesResolver entityNames) {
 		super( sessionFactory, entityNames );
@@ -43,6 +49,36 @@ public class IgnitePropertyHelper extends ParserPropertyHelper {
 	public Object convertToBackendType(String entityType, List<String> propertyPath, Object value) {
 		return value == PropertyIdentifier.PARAM_INSTANCE
 					? value : super.convertToBackendType( entityType, propertyPath, value );
+	}
+
+	@Override
+	protected Type getPropertyType(String entityType, List<String> propertyPath) {
+		return propertyPath.isEmpty()
+			? getPersister( entityType ).getType()
+			: super.getPropertyType( entityType, propertyPath );
+	}
+
+	void setRootEntity(String entityName) {
+		if ( rootEntityType != null && !rootEntityType.equals( entityName ) ) {
+			throw new NotYetImplementedException( "Multiple root entities" );
+		}
+		rootEntityType = entityName;
+	}
+
+	String getRootEntity() {
+		return rootEntityType;
+	}
+
+	void addSelectionPath(PropertyPath path) {
+		selections.add( path );
+	}
+
+	List<PropertyPath> getSelections() {
+		return selections;
+	}
+
+	String getEntityNameByAlias(String alias) {
+		return entityNameByAlias.get( alias );
 	}
 
 	/**
@@ -145,41 +181,10 @@ public class IgnitePropertyHelper extends ParserPropertyHelper {
 		return persister.getEntityKeyMetadata();
 	}
 
-	/**
-	 * Checks whether the supplied character is a letter.
-	 */
-	private boolean isLetter(int c) {
-		return isUpperCaseLetter( c ) || isLowerCaseLetter( c );
-	}
-	/**
-	 * Checks whether the supplied character is an upper-case letter.
-	 */
-	private boolean isUpperCaseLetter(int c) {
-		return ( c >= 65 && c <= 90 ); // A - Z
-	}
-	/**
-	 * Checks whether the supplied character is an lower-case letter.
-	 */
-	private boolean isLowerCaseLetter(int c) {
-		return ( c >= 97 && c <= 122 ); // a - z
-	}
-	/**
-	 * Checks whether the supplied character is a number
-	 */
-	private boolean isNumber(int c) {
-		return ( c >= 48 && c <= 57 ); // 0 - 9
-	}
-
 	public void registerEntityAlias(String entityName, String alias) {
-		StringBuilder sb = new StringBuilder( alias );
-		for ( int i = 0; i < sb.length(); i++ ) {
-			char c = sb.charAt( i );
-			if ( c == '_' || isLetter( c ) ||  ( i > 0 && isNumber( c ) ) ) {
-				continue;
-			}
-			sb.setCharAt( i, '_' );
-		}
-		aliasByEntityName.put( entityName, sb.toString() );
+		alias = StringHelper.sqlNormalize( alias );
+		aliasByEntityName.put( entityName, alias );
+		entityNameByAlias.put( alias, entityName );
 	}
 
 	public String findAliasForType(String entityType) {

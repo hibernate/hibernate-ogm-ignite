@@ -32,7 +32,7 @@ public class IgniteProcessingChain implements AstProcessingChain<IgniteQueryPars
 
 	public IgniteProcessingChain(SessionFactoryImplementor sessionFactory, EntityNamesResolver entityNamesResolver, Map<String, Object> namedParameters) {
 		IgnitePropertyHelper propertyHelper = new IgnitePropertyHelper( sessionFactory, entityNamesResolver );
-		resolverProcessor = new QueryResolverProcessor( new IgniteQueryResolverDelegate( propertyHelper ) );
+		resolverProcessor = new QueryResolverProcessor( new IgniteQueryResolverDelegate( sessionFactory, propertyHelper ) );
 		rendererDelegate = new IgniteQueryRendererDelegate( sessionFactory, propertyHelper, entityNamesResolver, namedParameters );
 		rendererProcessor = new QueryRendererProcessor( rendererDelegate );
 	}
