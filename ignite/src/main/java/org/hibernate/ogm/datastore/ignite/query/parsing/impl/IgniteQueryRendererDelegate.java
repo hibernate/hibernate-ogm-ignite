@@ -93,13 +93,16 @@ public class IgniteQueryRendererDelegate extends SingleEntityQueryRendererDelega
 		String rootAlias = propertyHelper.findAliasForType( propertyHelper.getRootEntity() );
 
 		// is selected unqualified root entity (e.g. "from Hypothesis"),
-		// or a single entity by alias (e.g. "select h from Hypothesis h")
+		// or a single entity defined by alias (e.g. "select h from Hypothesis h")
 		if ( propertyHelper.getSelections().isEmpty()
 			|| ( propertyHelper.getSelections().size() == 1
 				&& propertyHelper.getSelections().get( 0 ).getNodeNamesWithoutAlias().isEmpty() ) ) {
+			String selectionAlias = propertyHelper.getSelections().isEmpty()
+				? rootAlias
+				: propertyHelper.getSelections().get( 0 ).getFirstNode().getName();
 			queryBuilder
-				.append( rootAlias ).append( "._KEY, " )
-				.append( rootAlias ).append( "._VAL" );
+				.append( selectionAlias ).append( "._KEY, " )
+				.append( selectionAlias ).append( "._VAL" );
 			return Collections.emptyList();
 		}
 
