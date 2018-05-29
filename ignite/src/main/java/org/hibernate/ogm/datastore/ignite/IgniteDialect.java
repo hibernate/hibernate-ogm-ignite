@@ -27,7 +27,6 @@ import org.hibernate.dialect.lock.LockingStrategy;
 import org.hibernate.dialect.lock.OptimisticForceIncrementLockingStrategy;
 import org.hibernate.dialect.lock.OptimisticLockingStrategy;
 import org.hibernate.dialect.lock.PessimisticForceIncrementLockingStrategy;
-import org.hibernate.loader.custom.Return;
 import org.hibernate.loader.custom.ScalarReturn;
 import org.hibernate.ogm.datastore.ignite.impl.IgniteAssociationRowSnapshot;
 import org.hibernate.ogm.datastore.ignite.impl.IgniteAssociationSnapshot;
@@ -606,13 +605,19 @@ public class IgniteDialect extends BaseGridDialect implements GridDialect, Multi
 		if ( firstRow != null && firstRow.intValue() < 0 ) {
 			throw new IllegalArgumentException( "Query argument firstResult cannot be negative" );
 		}
-		IgniteCache<Object, BinaryObject> cache;
-		if ( backendQuery.getSingleEntityMetadataInformationOrNull() != null ) {
-			cache = provider.getEntityCache( backendQuery.getSingleEntityMetadataInformationOrNull().getEntityKeyMetadata() );
+		EntityKeyMetadata selectionEntity;
+		if ( backendQuery.getQuery().getRootKeyMetadata() == null ) {
+			if ( backendQuery.getSingleEntityMetadataInformationOrNull() != null ) {
+				selectionEntity = backendQuery.getSingleEntityMetadataInformationOrNull().getEntityKeyMetadata();
+			}
+			else {
+				throw new IllegalArgumentException( "Cannot determine any selection entity" );
+			}
 		}
 		else {
-			throw new UnsupportedOperationException( "Not implemented. Can't find cache name" );
+			selectionEntity = backendQuery.getQuery().getRootKeyMetadata();
 		}
+		IgniteCache<Object, BinaryObject> cache = provider.getEntityCache( selectionEntity );
 		List indexedParameters = null;
 		if ( !queryParameters.getNamedParameters().isEmpty() ) {
 			indexedParameters = new ArrayList( queryParameters.getNamedParameters().size() );
@@ -637,19 +642,13 @@ public class IgniteDialect extends BaseGridDialect implements GridDialect, Multi
 		);
 		Iterable<List<?>> result = executeWithHints( cache, sqlQuery, hints );
 
-		if ( backendQuery.getSingleEntityMetadataInformationOrNull() != null ) {
-			return new IgnitePortableFromProjectionResultCursor(
-							result,
-							queryParameters.getRowSelection(),
-							backendQuery.getSingleEntityMetadataInformationOrNull().getEntityKeyMetadata()
-						);
-		}
-		else if ( backendQuery.getQuery().isHasScalar() ) {
-			throw new NotYetImplementedException();
-//			return new IgniteProjectionResultCursor( result, backendQuery.getQuery().getCustomQueryReturns(), queryParameters.getRowSelection() );
+		if ( backendQuery.getQuery().hasScalar() ) {
+			return new ProjectionResultCursor( result,
+				backendQuery.getQuery().getQueryReturns(), queryParameters.getRowSelection() );
 		}
 		else {
-			throw new UnsupportedOperationException( "Not implemented yet" );
+			return new SingleEntityResultCursor(
+				result, queryParameters.getRowSelection(), selectionEntity );
 		}
 	}
 
@@ -730,11 +729,11 @@ public class IgniteDialect extends BaseGridDialect implements GridDialect, Multi
 		}
 	}
 
-	private class IgniteProjectionResultCursor extends BaseResultCursor<List<?>> {
+	private class ProjectionResultCursor extends BaseResultCursor<List<?>> {
 
-		private final List<Return> queryReturns;
+		private final List<ScalarReturn> queryReturns;
 
-		public IgniteProjectionResultCursor(Iterable<List<?>> resultCursor, List<Return> queryReturns, RowSelection rowSelection) {
+		ProjectionResultCursor(Iterable<List<?>> resultCursor, List<ScalarReturn> queryReturns, RowSelection rowSelection) {
 			super( resultCursor, rowSelection );
 			this.queryReturns = queryReturns;
 		}
@@ -743,17 +742,17 @@ public class IgniteDialect extends BaseGridDialect implements GridDialect, Multi
 		TupleSnapshot createTupleSnapshot(List<?> value) {
 			Map<String, Object> map = new HashMap<>();
 			for ( int i = 0; i < value.size(); i++ ) {
-				ScalarReturn ret = (ScalarReturn) queryReturns.get( i );
-				map.put( ret.getColumnAlias(), value.get( i ) );
+				map.put( queryReturns.get( i ).getColumnAlias(), value.get( i ) );
 			}
 			return new MapTupleSnapshot( map );
 		}
 	}
 
-	private class IgnitePortableFromProjectionResultCursor extends BaseResultCursor<List<?>> {
+
+	private class SingleEntityResultCursor extends BaseResultCursor<List<?>> {
 		private final EntityKeyMetadata keyMetadata;
 
-		public IgnitePortableFromProjectionResultCursor(Iterable<List<?>> resultCursor, RowSelection rowSelection, EntityKeyMetadata keyMetadata) {
+		SingleEntityResultCursor(Iterable<List<?>> resultCursor, RowSelection rowSelection, EntityKeyMetadata keyMetadata) {
 			super( resultCursor, rowSelection );
 			this.keyMetadata = keyMetadata;
 		}
