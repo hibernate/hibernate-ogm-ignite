@@ -15,6 +15,7 @@ import org.hibernate.hql.ast.origin.hql.resolve.path.PropertyPath;
 import org.hibernate.hql.ast.spi.QueryResolverDelegate;
 import org.hibernate.ogm.datastore.ignite.logging.impl.Log;
 import org.hibernate.ogm.datastore.ignite.logging.impl.LoggerFactory;
+import org.hibernate.ogm.datastore.ignite.util.StringHelper;
 import org.hibernate.type.AssociationType;
 import org.hibernate.type.Type;
 
@@ -145,7 +146,6 @@ public class IgniteQueryResolverDelegate implements QueryResolverDelegate {
 
 	@Override
 	public void propertyPathCompleted(PropertyPath path) {
-		private final List<PropertyPath> selections = new ArrayList<>();
 		// TODO: resolve selection path(s) in IgniteQueryTreeRenderer
 		if ( definingSelect ) {
 			propertyHelper.addSelectionPath( path );
