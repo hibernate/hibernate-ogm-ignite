@@ -36,9 +36,10 @@ public class IgnitePropertyHelper extends ParserPropertyHelper {
 
 	private final Map<String, String> aliasByEntityName = new HashMap<>();
 	private final Map<String, String> entityNameByAlias = new HashMap<>();
+	private final List<PropertyPath> selections = new ArrayList<>();
 
 	private String rootEntityType;
-	private PropertyPath selectionPath;
+
 
 	public IgnitePropertyHelper(SessionFactoryImplementor sessionFactory, EntityNamesResolver entityNames) {
 		super( sessionFactory, entityNames );
@@ -52,9 +53,10 @@ public class IgnitePropertyHelper extends ParserPropertyHelper {
 
 	@Override
 	protected Type getPropertyType(String entityType, List<String> propertyPath) {
-		return super.getPropertyType( entityType, propertyPath );
+		return propertyPath.isEmpty()
+			? getPersister( entityType ).getType()
+			: super.getPropertyType( entityType, propertyPath );
 	}
-
 
 	void setRootEntity(String entityName) {
 		if ( rootEntityType != null && !rootEntityType.equals( entityName ) ) {
@@ -67,29 +69,17 @@ public class IgnitePropertyHelper extends ParserPropertyHelper {
 		return rootEntityType;
 	}
 
-
-	/**
-	 * Sets the selection path. We should do this explicitly,
-	 * because selected entity may differ from root entity
-	 */
-	void setSelectionPath(PropertyPath path) {
-		if ( selectionPath != null ) {
-			throw new NotYetImplementedException( "Multiple selections" );
-		}
-		if ( path.getNodes().size() > 1 || !path.getFirstNode().isAlias() ) {
-			throw new NotYetImplementedException( "Projection selection" );
-		}
-		selectionPath = path;
+	void addSelectionPath(PropertyPath path) {
+		selections.add( path );
 	}
 
-	PropertyPath getSelectionPath() {
-		return selectionPath;
+	List<PropertyPath> getSelections() {
+		return selections;
 	}
 
 	String getEntityNameByAlias(String alias) {
-		return entityNameByAlias.get( StringHelper.sqlNormalize( alias ) );
+		return entityNameByAlias.get( alias );
 	}
-
 
 	/**
 	 * Returns the {@link PropertyIdentifier} for the given property path.

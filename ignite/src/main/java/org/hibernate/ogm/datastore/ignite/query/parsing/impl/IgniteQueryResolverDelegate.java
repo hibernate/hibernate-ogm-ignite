@@ -72,26 +72,23 @@ public class IgniteQueryResolverDelegate implements QueryResolverDelegate {
 
 	@Override
 	public PathedPropertyReferenceSource normalizeUnqualifiedPropertyReference(Tree property) {
-		return new PathedPropertyReference( property.getText(), null, isAlias( property ) );
+		return normalizeUnqualifiedRoot( property );
 	}
 
 	@Override
 	public boolean isPersisterReferenceAlias() {
-		return currentAlias != null && isEntityAlias( currentAlias );
+		return currentAlias != null && isAlias( currentAlias );
 	}
 
 	@Override
 	public PathedPropertyReferenceSource normalizeUnqualifiedRoot(Tree root) {
-		return new PathedPropertyReference( root.getText(), null, isAlias( root ) );
+		String identifier = StringHelper.sqlNormalize( root.getText() );
+		boolean isAlias = isAlias( identifier );
+		return new PathedPropertyReference( isAlias ? identifier : root.getText(), null, isAlias );
 	}
 
-	private boolean isAlias(Tree root) {
-		return isEntityAlias( root.getText() )
-			|| propertyHelper.getEntityNameByAlias( root.getText() ) != null;
-	}
-
-	private boolean isEntityAlias(String alias) {
-		return propertyHelper.getEntityNameByAlias( alias ) != null;
+	private boolean isAlias(String identifier) {
+		return propertyHelper.getEntityNameByAlias( identifier ) != null;
 	}
 
 	@Override
@@ -148,9 +145,10 @@ public class IgniteQueryResolverDelegate implements QueryResolverDelegate {
 
 	@Override
 	public void propertyPathCompleted(PropertyPath path) {
+		private final List<PropertyPath> selections = new ArrayList<>();
 		// TODO: resolve selection path(s) in IgniteQueryTreeRenderer
 		if ( definingSelect ) {
-			propertyHelper.setSelectionPath( path );
+			propertyHelper.addSelectionPath( path );
 		}
 	}
 
