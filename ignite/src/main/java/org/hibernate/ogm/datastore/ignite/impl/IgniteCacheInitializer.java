@@ -12,6 +12,7 @@ import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.Optional;
 import java.util.Set;
+import java.util.UUID;
 
 import org.apache.ignite.cache.CacheAtomicityMode;
 import org.apache.ignite.cache.QueryEntity;
@@ -180,7 +181,7 @@ public class IgniteCacheInitializer extends BaseSchemaDefiner {
 			fields.put( realColumnName, true );
 		}
 		queryIndex.setFields( fields );
-		queryIndex.setName( queryEntity.getTableName() + '_' + org.hibernate.ogm.util.impl.StringHelper.join( fields.keySet(), "_" ) );
+		queryIndex.setName( UUID.randomUUID().toString().replace( "-", "_" ) );
 
 		Set<QueryIndex> indexes = new HashSet<>( queryEntity.getIndexes() );
 		indexes.add( queryIndex );
