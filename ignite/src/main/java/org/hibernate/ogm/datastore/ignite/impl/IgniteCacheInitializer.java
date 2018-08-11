@@ -181,19 +181,19 @@ public class IgniteCacheInitializer extends BaseSchemaDefiner {
 			fields.put( realColumnName, true );
 		}
 		queryIndex.setFields( fields );
-		String indexName = queryEntity.getTableName() + '_' + org.hibernate.ogm.util.impl.StringHelper.join( fields.keySet(), "_" );
+		String indexName = queryEntity.getTableName() + '_' + UUID.nameUUIDFromBytes( org.hibernate.ogm.util.impl.StringHelper.join( fields.keySet(), "_" ).getBytes() );
 		Class<?> tableClass = context.getTableEntityTypeMapping().get( associationKeyMetadata.getAssociatedEntityKeyMetadata().getEntityKeyMetadata().getTable() );
 		javax.persistence.Table tableAnnotation = tableClass.getAnnotation( javax.persistence.Table.class );
-		if( tableAnnotation != null && tableAnnotation.indexes().length > 0) {
-			for(javax.persistence.Index index: tableAnnotation.indexes()){
-				if(!index.name().isEmpty()) {
+		if ( tableAnnotation != null && tableAnnotation.indexes().length > 0 ) {
+			for ( javax.persistence.Index index: tableAnnotation.indexes() ) {
+				if ( !index.name().isEmpty() ) {
 					indexName = index.name();
 					break;
 				}
 			}
 		}
 		if ( indexName.getBytes().length > 255 ) {
-			throw log.indexNameTooLong(indexName, queryEntity.getTableName());
+			throw log.indexNameTooLong( indexName, queryEntity.getTableName() );
 		}
 		queryIndex.setName( indexName );
 

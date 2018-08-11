@@ -7,18 +7,20 @@
 package org.hibernate.ogm.datastore.ignite.test.cfg;
 
 import org.apache.ignite.cache.QueryIndex;
-import org.hibernate.HibernateException;
 import org.hibernate.ogm.OgmSession;
 import org.hibernate.ogm.datastore.ignite.utils.IgniteTestHelper;
 import org.hibernate.ogm.utils.OgmTestCase;
 import org.junit.Test;
 
-import javax.persistence.*;
+import javax.persistence.Entity;
+import javax.persistence.Id;
+import javax.persistence.Index;
+import javax.persistence.OneToMany;
+import javax.persistence.Table;
 import java.util.HashSet;
 import java.util.Set;
 
 import static org.fest.assertions.Assertions.assertThat;
-import static org.junit.Assert.fail;
 
 /**
  * Entities with long names that results in an index with greater than 255 chars is invalid in Ignite.

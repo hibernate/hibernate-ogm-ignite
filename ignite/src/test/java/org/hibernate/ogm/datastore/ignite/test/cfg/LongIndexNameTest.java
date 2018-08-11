@@ -9,10 +9,14 @@ package org.hibernate.ogm.datastore.ignite.test.cfg;
 import org.hibernate.HibernateException;
 import org.hibernate.ogm.utils.OgmTestCase;
 import org.junit.Test;
-import javax.persistence.*;
+
+import javax.persistence.Entity;
+import javax.persistence.Id;
+import javax.persistence.OneToMany;
 import java.util.HashSet;
 import java.util.Set;
-import static org.junit.Assert.*;
+
+import static junit.framework.TestCase.fail;
 
 /**
  * Entities with long names that results in an index with greater than 255 chars is invalid in Ignite.
@@ -22,7 +26,7 @@ public class LongIndexNameTest extends OgmTestCase {
 
 	@Test(expected = HibernateException.class)
 	public void testLongEntityIndexName() throws Exception {
-		fail("The length of the registered entity's cache name should've failed this already");
+		fail( "The length of the registered entity's cache name should've failed this already" );
 	}
 
 	@Override
