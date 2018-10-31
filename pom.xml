@@ -31,6 +31,7 @@
         <module>ignite</module>
     </modules>
 
+	
     <!-- Only for management of test-scoped dependencies; All other dependencies (which are exposed to users) are
          managed in the BOM -->
     <dependencyManagement>
