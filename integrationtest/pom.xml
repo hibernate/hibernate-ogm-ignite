@@ -16,9 +16,8 @@
 
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 
-        <!-- Skipping enforcer plug-in as AS/Arquillian cause several dependency
-            convergence issues -->
-        <enforcer.skip>true</enforcer.skip>
+        <!-- Skipping enforcer dependency convergence check as AS/Arquillian cause several dependency convergence issues -->
+        <enforcer.dependencyconvergence.skip>true</enforcer.dependencyconvergence.skip>
 
         <maven.javadoc.skip>true</maven.javadoc.skip>
     </properties>
@@ -109,50 +108,6 @@
                         <configuration>
                             <config-file>server-provisioning.xml</config-file>
                             <server-name>${wildFlyServerName}</server-name>
-                        </configuration>
-                    </execution>
-                </executions>
-            </plugin>
-            <plugin>
-                <artifactId>maven-dependency-plugin</artifactId>
-                <executions>
-                    <execution>
-                        <id>unpack</id>
-                        <phase>pre-integration-test</phase>
-                        <goals>
-                            <goal>unpack</goal>
-                        </goals>
-                        <configuration>
-                            <artifactItems>
-                                <artifactItem>
-                                    <groupId>org.hibernate</groupId>
-                                    <artifactId>hibernate-orm-modules</artifactId>
-                                    <version>${hibernateVersion}</version>
-                                    <classifier>${hibernateWildflyClassifier}</classifier>
-                                    <type>zip</type>
-                                    <overWrite>true</overWrite>
-                                    <outputDirectory>${jboss.home}/modules</outputDirectory>
-                                </artifactItem>
-                                <artifactItem>
-                                    <groupId>${project.groupId}</groupId>
-                                    <artifactId>hibernate-ogm-modules</artifactId>
-                                    <classifier>${hibernateWildflyClassifier}</classifier>
-                                    <version>${project.version}</version>
-                                    <type>zip</type>
-                                    <overWrite>true</overWrite>
-                                    <outputDirectory>${jboss.home}/modules</outputDirectory>
-                                </artifactItem>
-                                <!-- modules for Apache Ignite dialect -->
-                                <artifactItem>
-                                    <groupId>${project.groupId}</groupId>
-                                    <artifactId>hibernate-ogm-ignite-modules</artifactId>
-                                    <classifier>${hibernateWildflyClassifier}</classifier>
-                                    <version>${project.version}</version>
-                                    <type>zip</type>
-                                    <overWrite>true</overWrite>
-                                    <outputDirectory>${jboss.home}/modules</outputDirectory>
-                                </artifactItem>
-                            </artifactItems>
                         </configuration>
                     </execution>
                 </executions>

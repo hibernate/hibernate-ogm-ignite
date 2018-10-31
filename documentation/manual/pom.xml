@@ -55,7 +55,7 @@
                                 <artifactItem>
                                     <groupId>org.hibernate.infra</groupId>
                                     <artifactId>hibernate-asciidoctor-theme</artifactId>
-                                    <version>${hibernate-asciidoctor-theme.version}</version>
+                                    <version>${version.org.hibernate.infra.hibernate-asciidoctor-theme}</version>
                                     <type>zip</type>
                                     <overWrite>true</overWrite>
                                     <outputDirectory>${project.build.directory}/</outputDirectory>
