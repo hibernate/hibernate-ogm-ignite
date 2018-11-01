@@ -1,4 +1,4 @@
-<server-provisioning xmlns="urn:wildfly:server-provisioning:1.1">
+<server-provisioning xmlns="urn:wildfly:server-provisioning:1.1" extract-schemas="true" copy-module-artifacts="true">
 	<feature-packs>
 
 		<feature-pack
