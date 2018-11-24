@@ -20,7 +20,6 @@
         <enforcer.dependencyconvergence.skip>true</enforcer.dependencyconvergence.skip>
 
         <maven.javadoc.skip>true</maven.javadoc.skip>
-        <version.org.hibernate.search>5.10.5.Final</version.org.hibernate.search>
     </properties>
 
     <dependencyManagement>
