@@ -23,6 +23,7 @@
             	-XX:MaxPermSize=512m 
             	-Djava.net.preferIPv4Stack=true 
             	-XX:+IgnoreUnrecognizedVMOptions 
+            	-Dee8.preview.mode=true
             </property>
 <!-- 
             	-Dremote.maven.repo=http://repository.jboss.org/nexus/content/groups/public/
