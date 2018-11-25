@@ -23,6 +23,7 @@
 
     <properties>
 		<version.org.hibernate.ogm.core>5.4.0.Final</version.org.hibernate.ogm.core>
+		<hibernateWildflyClassifier>wildfly-13-dist</hibernateWildflyClassifier>
         <!-- Ignite -->
         <igniteVersion>2.6.0</igniteVersion>
         <h2Version>1.4.195</h2Version>

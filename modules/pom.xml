@@ -27,7 +27,6 @@
         <javax.cache.module.slot>${cacheApiVersion}</javax.cache.module.slot>
         <com.h2database.h2.module.slot>${h2Version}</com.h2database.h2.module.slot>
         <maven.javadoc.skip>true</maven.javadoc.skip>
-        <hibernateWildflyClassifier>wildfly-13-dist</hibernateWildflyClassifier>
     </properties>
 
     <dependencies>
