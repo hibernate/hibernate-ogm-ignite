@@ -12,7 +12,7 @@
     <parent>
         <groupId>org.hibernate.ogm</groupId>
         <artifactId>hibernate-ogm-ignite-parent</artifactId>
-        <version>5.3.0-SNAPSHOT</version>
+        <version>5.4.0-SNAPSHOT</version>
         <relativePath>../../pom.xml</relativePath>
     </parent>
 
@@ -55,7 +55,7 @@
                                 <artifactItem>
                                     <groupId>org.hibernate.infra</groupId>
                                     <artifactId>hibernate-asciidoctor-theme</artifactId>
-                                    <version>${hibernate-asciidoctor-theme.version}</version>
+                                    <version>${version.org.hibernate.infra.hibernate-asciidoctor-theme}</version>
                                     <type>zip</type>
                                     <overWrite>true</overWrite>
                                     <outputDirectory>${project.build.directory}/</outputDirectory>

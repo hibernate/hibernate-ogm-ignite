@@ -1,4 +1,4 @@
-<server-provisioning xmlns="urn:wildfly:server-provisioning:1.1">
+<server-provisioning xmlns="urn:wildfly:server-provisioning:1.1" extract-schemas="true" copy-module-artifacts="true">
 	<feature-packs>
 
 		<feature-pack
@@ -9,7 +9,12 @@
 		<feature-pack
 			groupId="org.hibernate"
 			artifactId="hibernate-search-jbossmodules-orm"
-			version="${hibernateSearchVersion}" />
+ 			version="${version.org.hibernate.search}" />
 
+		<feature-pack 
+			groupId="org.hibernate.ogm" 
+			artifactId="hibernate-ogm-featurepack-core" 
+			version="${version.org.hibernate.ogm.core}" />
+			
 	</feature-packs>
 </server-provisioning>

@@ -13,6 +13,8 @@ import java.util.Map;
 
 import org.hibernate.QueryException;
 import org.hibernate.engine.query.spi.ParameterParser;
+import org.hibernate.ogm.datastore.ignite.logging.impl.Log;
+import org.hibernate.ogm.datastore.ignite.logging.impl.LoggerFactory;
 import org.hibernate.persister.collection.SQLLoadableCollection;
 import org.hibernate.persister.entity.SQLLoadable;
 
@@ -22,6 +24,8 @@ import org.hibernate.persister.entity.SQLLoadable;
  * @author Victor Kadachigov
  */
 public class IgniteSqlQueryParser {
+
+	private static final Log log = LoggerFactory.getLogger();
 
 	private static final String HIBERNATE_PLACEHOLDER_PREFIX = "h-";
 	private static final String DOMAIN_PLACEHOLDER = "h-domain";
@@ -346,8 +350,8 @@ public class IgniteSqlQueryParser {
 		}
 
 		@Override
-		public void jpaPositionalParameter(String name, int position) {
-			namedParameter( name, position );
+		public void jpaPositionalParameter(int identifier, int position) {
+			throw new UnsupportedOperationException( "jpaPositionalParameter() is not implemented" );
 		}
 
 		@Override
@@ -370,6 +374,11 @@ public class IgniteSqlQueryParser {
 			else {
 				( (List) o ).add( loc );
 			}
+		}
+
+		@Override
+		public void complete() {
+			throw new UnsupportedOperationException( "complete() is not implemented" );
 		}
 	}
 

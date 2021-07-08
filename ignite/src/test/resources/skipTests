@@ -39,4 +39,8 @@ org.hibernate.ogm.backendtck.associations.collection.unidirectional.CollectionUn
 org.hibernate.ogm.backendtck.associations.manytoone.ManyToOneTest#testUnidirectionalManyToOne
 org.hibernate.ogm.backendtck.jpa.JPAResourceLocalTest#testBootstrapAndCRUD
 
+// ogm 5.4
+org.hibernate.ogm.backendtck.queries.AggregateOperationQueryTest
+org.hibernate.ogm.backendtck.storedprocedures.NamedParametersStoredProcedureCallTest
+org.hibernate.ogm.backendtck.storedprocedures.PositionalParametersStoredProcedureCallTest
 
