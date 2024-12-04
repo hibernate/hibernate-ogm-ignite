@@ -49,4 +49,7 @@ public interface Log extends org.hibernate.ogm.util.impl.Log {
 
 	@Message(id = 1710, value = "Neither " + IgniteProperties.CONFIGURATION_RESOURCE_NAME + " nor " + IgniteProperties.CONFIGURATION_CLASS_NAME + " properties are set")
 	HibernateException configurationNotSet();
+
+	@Message(id = 1711, value = "Invalid index name '%s' for entity '%s'. It must not be longer than 255 bytes. Use javax.persistence.@Index to override")
+	HibernateException indexNameTooLong(String indexName, String entityName);
 }
