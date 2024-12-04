@@ -33,7 +33,7 @@ public class IgniteEmbeddedAssociationSnapshot implements AssociationSnapshot {
 	public IgniteEmbeddedAssociationSnapshot(AssociationKey associationKey, Tuple tuple) {
 		this.associationMetadata = associationKey.getMetadata();
 		this.tuple = tuple;
-		BinaryObject obj = ( (IgniteTupleSnapshot) tuple.getSnapshot() ).getCacheValue();
+		BinaryObject obj = tuple != null ? ( (IgniteTupleSnapshot) tuple.getSnapshot() ).getCacheValue() : null;
 		Object objects[] = obj != null ? (Object[]) obj.field( StringHelper.realColumnName( associationMetadata.getCollectionRole() ) ) : null;
 		rows = new HashMap<>();
 		if ( objects != null ) {

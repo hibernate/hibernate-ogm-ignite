@@ -11,18 +11,18 @@ cache:
 env:
   global:
 install:
-  # install latest Hibernate OGM snapshot
-  - git clone https://github.com/hibernate/hibernate-ogm.git
-  - cd hibernate-ogm
-  # The Maven install provided by Travis is outdated, use Maven wrapper to get the latest version
-  - mvn -N -q io.takari:maven:wrapper
-  - ./mvnw -v
-  - travis_wait ./mvnw install -B -q -s settings-example.xml -am -pl bom,core -DskipITs -DskipDistro -DskipDocs -DskipTests
-  - cd ..
+#  # install latest Hibernate OGM snapshot
+#  - git clone https://github.com/hibernate/hibernate-ogm.git
+#  - cd hibernate-ogm
+#  # The Maven install provided by Travis is outdated, use Maven wrapper to get the latest version
+#  - mvn -N -q io.takari:maven:wrapper
+#  - ./mvnw -v
+#  - travis_wait ./mvnw install -B -q -s settings-example.xml -am -pl bom,core -DskipITs -DskipDistro -DskipDocs -DskipTests
+#  - cd ..
   # The Maven install provided by Travis is outdated, use Maven wrapper to get the latest version
   - mvn -N -q io.takari:maven:wrapper
   # first run to download all the Maven dependencies without logging
-  - travis_wait ./mvnw install -B -q -s settings-example.xml -Ptest -DskipTests=true -Dmaven.javadoc.skip=true -DskipDistro=true 
+  - travis_wait ./mvnw install -B -q -s settings-example.xml -Ptest -DskipTests -DskipDocs -DskipITs -DskipDistro 
   # we run checkstyle first to fail fast if there is a styling error
   - ./mvnw -s settings-example.xml -DskipDistro=true checkstyle:check
 matrix:

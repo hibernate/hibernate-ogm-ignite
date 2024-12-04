@@ -61,6 +61,8 @@ public class StringHelper {
 	/**
 	 * Normalizes an identifier to make it SQL-safe,
 	 * e. g. "&lt;gen_0&gt;" -&gt; "_gen_0_"
+	 * @param identifier - identifier
+	 * @return normalized identifier
 	 */
 	public static String sqlNormalize(String identifier) {
 		StringBuilder sb = new StringBuilder( identifier );
